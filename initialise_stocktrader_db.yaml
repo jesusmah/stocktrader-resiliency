@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: initialise-stocktrader-db
+spec:
+  template:
+    spec:
+      containers:
+      - name: db2-express
+        image: ibmcom/db2express-c:latest
+        imagePullPolicy: IfNotPresent
+        command: ["bash", "-c" ]
+        args:
+          - >
+              echo "Configuring DB2 driver to talk to STOCKTRD Application's DB" &&
+              /home/db2inst1/sqllib/bin/db2cli writecfg add -dsn st -database STOCKTRD -host st-db2-ibm-db2oltp-dev -port 50000 &&
+
+              echo "Validating previous configuration" &&
+              /home/db2inst1/sqllib/bin/db2cli validate -dsn st &&
+
+              echo "Grabbing SQL files to populate STOCKTRD" &&
+              cd /tmp &&
+              wget https://raw.githubusercontent.com/${GITHUB_REPO}/stocktrader-resiliency/master/initialise_stocktrader_db.sql &&
+              wget https://raw.githubusercontent.com/${GITHUB_REPO}/stocktrader-resiliency/master/initialise_stocktrader_db.sql &&
+
+              echo "Executing SQL files against ORDERDB" &&
+              /home/db2inst1/sqllib/bin/db2cli execsql -dsn st -user ${STOCKTRADER_DB_USER} -passwd ${STOCKTRADER_DB_PASSWD} -inputsql initialise_stocktrader_db.sql &&
+              echo
+              echo "[SUCCESS]: StockTrader application's DB has been successfully initialise."
+        ports:
+        - name: http
+          containerPort: 50000
+        env:
+        - name: LICENSE
+          value: "accept"
+        - name: DB2INST1_PASSWORD
+          value: "justApass"
+        - name: GITHUB_REPO
+          value: "jesusmah"
+        - name: STOCKTRADER_DB_USER
+          value: "db2inst1"
+        - name: STOCKTRADER_DB_PASSWD
+          value: "stocktraderdb"
+      restartPolicy: Never
