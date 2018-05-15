@@ -22,6 +22,7 @@ spec:
               cd /tmp &&
               wget https://raw.githubusercontent.com/${GITHUB_REPO}/stocktrader-resiliency/master/initialise_stocktrader_db.sql &&
               wget https://raw.githubusercontent.com/${GITHUB_REPO}/stocktrader-resiliency/master/export.sh &&
+              wget https://raw.githubusercontent.com/${GITHUB_REPO}/stocktrader-resiliency/master/users.sh &&
 
               echo "Executing SQL files against ORDERDB" &&
               /home/db2inst1/sqllib/bin/db2cli execsql -dsn st -user ${STOCKTRADER_DB_USER} -passwd ${STOCKTRADER_DB_PASSWD} -inputsql initialise_stocktrader_db.sql &&
