@@ -62,7 +62,7 @@ update()
 
 retrieve()
 {
-  RESPONSE=`curl -b ${COOKIE_FILE} -o output/retrieve_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/viewPortfolio?owner=${USER}" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/retrieve_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/viewPortfolio?owner=${USER}" \
                       -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
                       -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
                       --compressed --insecure`
@@ -75,7 +75,7 @@ retrieve()
 summary()
 {
   echo "[`date '+%H:%M:%S'`] [${THREAD}] - Getting the ${1} summary report..."
-  RESPONSE=`curl -b ${COOKIE_FILE} -o output/summary_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/summary_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
                       -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
                       -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
                       --compressed --insecure`

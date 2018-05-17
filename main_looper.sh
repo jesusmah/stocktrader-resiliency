@@ -66,7 +66,7 @@ login()
 
 summary()
 {
-  RESPONSE=`curl -b ${COOKIE_FILE} -o output/summary_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/summary_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
                       -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
                       -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
                       --compressed --insecure`
