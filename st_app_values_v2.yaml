@@ -38,6 +38,27 @@ secret:
     # queue: NotificationQ
     queue: Tm90aWZpY2F0aW9uUQ==
 
+  oidc:
+    create: true
+    secret_name: stocktrader-oidc
+    # auth: https://idaas.iam.ibm.com/idaas/oidc/endpoint/default/authorize
+    auth: aHR0cHM6Ly9pZGFhcy5pYW0uaWJtLmNvbS9pZGFhcy9vaWRjL2VuZHBvaW50L2RlZmF1bHQvYXV0aG9yaXpl
+    # id: ODllNjBlMDgtYzM5NS00
+    id: T0RsbE5qQmxNRGd0WXpNNU5TMDA=
+    # issuer: https://idaas.iam.ibm.com
+    issuer: aHR0cHM6Ly9pZGFhcy5pYW0uaWJtLmNvbQ==
+    # key: blueidprod
+    key: Ymx1ZWlkcHJvZA==
+    # name: IBMid
+    name: SUJNaWQ=
+    # Callback host and port number
+    # nodeport: http://http://172.16.40.176/trader/trader/login
+    nodeport: aHR0cDovL2h0dHA6Ly8xNzIuMTYuNDAuMTc2L3RyYWRlci90cmFkZXIvbG9naW4=
+    # secret: MzhlZTY1ZjItM2IwNC00
+    secret: TXpobFpUWTFaakl0TTJJd05DMDA=
+    # token: https://idaas.iam.ibm.com/idaas/oidc/endpoint/default/token
+    token: aHR0cHM6Ly9pZGFhcy5pYW0uaWJtLmNvbS9pZGFhcy9vaWRjL2VuZHBvaW50L2RlZmF1bHQvdG9rZW4=
+
   openwhisk:
     create: true
     secret_name: stocktrader-openwhisk
@@ -68,29 +89,22 @@ secret:
     # accessTokenSecret: d6UE1vjs1NKMJMaQ7ofWRElJxWh9ePJQjgOOdZmSf28XQ
     accessTokenSecret: ZDZVRTF2anMxTktNSk1hUTdvZldSRWxKeFdoOWVQSlFqZ09PZFptU2YyOFhR
 
-############################################################################################################################
+  watson:
+    create: true
+    secret_name: stocktrader-watson
+    # url: https://gateway.watsonplatform.net/tone-analyzer/api/v3/tone?version=2017-09-21&sentences=false
+    url: aHR0cHM6Ly9nYXRld2F5LndhdHNvbnBsYXRmb3JtLm5ldC90b25lLWFuYWx5emVyL2FwaS92My90b25lP3ZlcnNpb249MjAxNy0wOS0yMSZzZW50ZW5jZXM9ZmFsc2U=
+    # Get your credentials at https://console.bluemix.net/catalog/services/tone-analyzer
+    # id: ef23e9b6-5ac8-4099-9e47-c1506ea6cf9b
+    id: ZWYyM2U5YjYtNWFjOC00MDk5LTllNDctYzE1MDZlYTZjZjli
+    # pwd: I8IqPk4A7xeJ
+    pwd: SThJcVBrNEE3eGVK
 
-loyalty-level:
-  replicaCount: 1
-  revisionHistoryLimit: 1
-  image:
-    repository: ibmstocktrader
-    name: loyalty-level
-    tag: latest
-    pullPolicy: IfNotPresent
-    containerPort:
-      http: 9080
-      https: 9443
-    resources:
-      requests:
-        cpu: 200m
-        memory: 300Mi
-  service:
-    # Change this to ClusterIP before releasing charts so microservices can only be reached through the ingress
-    type: ClusterIP
-    servicePort:
-      http: 9080
-      https: 9443
+  odm:
+    create: true
+    secret_name: stocktrader-odm
+    # url: http://st-odm-ibm-odm-dev:9060/DecisionService/rest/ICP_Trader_Dev_1/determineLoyalty
+    url: aHR0cDovL3N0LW9kbS1pYm0tb2RtLWRldjo5MDYwL0RlY2lzaW9uU2VydmljZS9yZXN0L0lDUF9UcmFkZXJfRGV2XzEvZGV0ZXJtaW5lTG95YWx0eQ==
 
 ############################################################################################################################
 
@@ -149,7 +163,7 @@ portfolio:
   image:
     repository: ibmstocktrader
     name: portfolio
-    tag: classic
+    tag: latest
     pullPolicy: IfNotPresent
     containerPort:
       http: 9080
@@ -168,6 +182,8 @@ portfolio:
     stock_service: stock-quote
     stock_service_port: "9080"
     stock_service_context: stock-quote
+  watson:
+    watson_tone_analyzer: "https://watson-api-explorer.mybluemix.net/tone-analyzer/api/v3/tone?version=2017-09-21&sentences=false"
 
 ############################################################################################################################
 
@@ -201,7 +217,7 @@ trader:
   image:
     repository: ibmstocktrader
     name: trader
-    tag: classic
+    tag: latest
     pullPolicy: IfNotPresent
     containerPort:
       http: 9080
@@ -216,7 +232,32 @@ trader:
     servicePort:
       http: 9080
       https: 9443
+    nodePort:
+      http: 31507
+      https: 32370
   portfolio:
     portfolio_service: portfolio
     portfolio_service_port: "9080"
     portfolio_service_context: "portfolio"
+
+############################################################################################################################
+
+tradr:
+  replicaCount: 1
+  revisionHistoryLimit: 1
+  image:
+    repository: ibmstocktrader
+    name: tradr
+    tag: latest
+    pullPolicy: IfNotPresent
+    containerPort: 3000
+    resources:
+      requests:
+        cpu: 200m
+        memory: 300Mi
+  service:
+    # Change this to ClusterIP before releasing charts so microservices can only be reached through the ingress
+    type: NodePort
+    servicePort:
+      port: 3000
+      nodePort: 31007
