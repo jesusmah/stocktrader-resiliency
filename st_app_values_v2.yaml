@@ -52,8 +52,8 @@ secret:
     # name: IBMid
     name: SUJNaWQ=
     # Callback host and port number
-    # nodeport: http://http://172.16.40.176/trader/trader/login
-    nodeport: aHR0cDovL2h0dHA6Ly8xNzIuMTYuNDAuMTc2L3RyYWRlci90cmFkZXIvbG9naW4=
+    # nodeport: https://172.16.40.176:32370
+    nodeport: aHR0cHM6Ly8xNzIuMTYuNDAuMTc2OjMyMzcw
     # secret: MzhlZTY1ZjItM2IwNC00
     secret: TXpobFpUWTFaakl0TTJJd05DMDA=
     # token: https://idaas.iam.ibm.com/idaas/oidc/endpoint/default/token
