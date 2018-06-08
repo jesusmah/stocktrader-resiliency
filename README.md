@@ -52,6 +52,7 @@ This version is a bit more elavorated where we use OIDC as the security mechanis
 - [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/threaded_main_looper_oidc.sh): Multi-threaded IBM StockTrader test script to be used when security is OIDC.
 - [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/user_loop.sh): User behavior simulated test script to be called by the multi-threaded IBM StockTrader test script.
 - [users.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/users.sh): Shell script to export IBM StockTrader users to a text file.
+- [get_logs.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/get_logs.sh): Shell script get all the logs from a helm release since a period of time (if specified).
 
 ## Installation
 
@@ -112,7 +113,7 @@ As depicted at the begining of this readme, the IBM StockTrader application envi
    ```
 ## Test
 
-**IMPORTANT:** The basic registry stocktrader version do not support SSO and therefore its BFF **can not be scaled up**. The other microservices can be scaled and the basic_registry tests below will work fine. 
+**IMPORTANT:** The basic registry stocktrader version do not support SSO and therefore its BFF **can not be scaled up**. The other microservices can be scaled and the basic_registry tests below will work fine.
 If you want to scale up the BFF too, you need to use the **latest** version of stocktrader which uses OIDC and therefore use the oidc scripts below.
 
 #### main_looper_basic_registry.sh
@@ -215,7 +216,7 @@ Example: `sh main_looper_oidc.sh 172.16.40.176 32370 3 6 1 cookies.txt`
 
 #### threaded_main_looper_basic_registry.sh
 
-This script will do exactly the same as **main_looper_basic_registry.sh** but will do so in **parallel** as many times as the number of threads you have specified as parameter. That is, for each thread it will execute (in parallel) the [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/user_loop.sh) script 
+This script will do exactly the same as **main_looper_basic_registry.sh** but will do so in **parallel** as many times as the number of threads you have specified as parameter. That is, for each thread it will execute (in parallel) the [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/user_loop.sh) script
 
 ```
 for thread in $(seq $NUM_THREADS)
