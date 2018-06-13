@@ -106,6 +106,12 @@ secret:
     # url: http://st-odm-ibm-odm-dev:9060/DecisionService/rest/ICP_Trader_Dev_1/determineLoyalty
     url: aHR0cDovL3N0LW9kbS1pYm0tb2RtLWRldjo5MDYwL0RlY2lzaW9uU2VydmljZS9yZXN0L0lDUF9UcmFkZXJfRGV2XzEvZGV0ZXJtaW5lTG95YWx0eQ==
 
+  ingress_host:
+    create: true
+    secret_name: strocktrader-ingress-host
+    # host: 172.16.40.176:31007
+    host: MTcyLjE2LjQwLjE3NjozMTAwNw==
+
 ############################################################################################################################
 
 messaging:
