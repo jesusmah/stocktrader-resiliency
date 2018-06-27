@@ -54,6 +54,7 @@ update()
                     -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/addStock?owner=${USER}" \
                     --data symbol=${SYMBOL}\&shares=${NUMBER_OF_SHARES}\&submit=Submit \
                     --compressed --insecure`
+  echo "RESPONSE: ${RESPONSE} || Iteration ${iteration} - user ${USER} - symbol ${SYMBOL}" >> output/return_code.txt
   if [ ${RESPONSE} -ne ${UPDATE_CODE} ]; then
     echo "[`date '+%H:%M:%S'`] [${THREAD}] - An error occured adding ${NUMBER_OF_SHARES} ${SYMBOL} shares to ${USER} stock"
     exit 1

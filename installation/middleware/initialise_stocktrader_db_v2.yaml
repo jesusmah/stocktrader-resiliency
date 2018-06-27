@@ -20,7 +20,7 @@ spec:
 
               echo "Grabbing SQL files to populate STOCKTRD" &&
               cd /tmp &&
-              wget https://raw.githubusercontent.com/${GITHUB_REPO}/stocktrader-resiliency/master/initialise_stocktrader_db_v2.sql &&
+              wget https://raw.githubusercontent.com/${GITHUB_REPO}/stocktrader-resiliency/master/installation/middleware/initialise_stocktrader_db_v2.sql &&
 
               echo "Executing SQL files against ORDERDB" &&
               /home/db2inst1/sqllib/bin/db2cli execsql -dsn st -user ${STOCKTRADER_DB_USER} -passwd ${STOCKTRADER_DB_PASSWD} -inputsql /tmp/initialise_stocktrader_db_v2.sql &&
