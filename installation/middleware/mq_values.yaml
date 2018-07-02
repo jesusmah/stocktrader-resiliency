@@ -30,7 +30,7 @@ image:
 # persistence section specifies persistence settings which apply to the whole chart
 persistence:
   # enabled is whether to use Persistent Volumes or not
-  enabled: true
+  enabled: false
   # useDynamicProvisioning is whether or not to use Storage Classes to dynamically create Persistent Volumes
   useDynamicProvisioning: true
 
@@ -39,7 +39,7 @@ dataPVC:
   # name sets part of the name for this Persistent Volume Claim
   name: "mqtest"
   ## storageClassName is the name of the Storage Class to use, or an empty string for no Storage Class
-  storageClassName: "glusterfs-dispersed"
+  storageClassName: "glusterfs"
   ## size is the minimum size of the Persistent Volume
   size: 2Gi
 
