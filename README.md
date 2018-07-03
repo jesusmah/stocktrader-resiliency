@@ -1,19 +1,37 @@
 # stocktrader-resiliency
 
-This repo contains the artefacts created for ICP application resiliency exploratory test using the IBM StockTrader application. Amongst these artefacts, you will see installation files for the middleware and the application as well as the test scripts themselves.
-
 **LATEST ENV**
-
 https://172.16.40.176:32370/trader/summary
-
 Namepsace: stocktrader
 ---
 
-1.  [IBM StockTrader application](#ibm-stocktrader-application)
-2.  [Installation](#installation)
+1.  [Introduction](#introduction)
+2.  [IBM StockTrader application](#ibm-stocktrader-application)
+3.  [Installation](#installation)
+    - [Platform](#platform)
     - [Middleware](#middleware)
+      - [IBM DB2](#ibm-db2)
+      - [IBM MQ](#ibm-mq)
+      - [IBM ODM](#ibm-odm)
+      - [Redis](#redis)
     - [Application](#application)
-3.  [Test](#test)
+4.  [Verification](#verification)
+5.  [Uninstallation](#uninstallation)
+6.  [Test](#test)
+    - [Load Test](#load-test)
+    - [Chaos](#chaos)
+7.  [Files](#files)
+8.  [Links](#links)
+
+## Introduction
+
+The main goal of the work here presented in this GitHub repository is to explore new cloud native microservices based application resiliency on the IBM Cloud Private (ICP) platform. The desired outcome for this work would be a list of some recommendations and things to watch out as far as how to build resilient cloud native microservices based applications on the IBM Cloud Private (ICP) platform.
+
+The work methodology we have chosen consists of using a representative application for each of the different scenarios cloud native microservices based application resiliency extensive field might involve, execute some load test on it while simulating platform failures and observe the resiliency of the application while writing down not only its behaviour but the reasons behind it, what is wrong/failing, what can be enhanced, etc. It is important to note that we consider the middleware the application might use totally resilient and therefore taking it out of the equation by not simulating platform failures for them.
+
+In order to get us started, we have picked what we consider as the easiest scenario: a stateless microservices based application called the IBM StockTrader application.
+
+Other scenarios blah blah blah LIST OTHER SCENARIOS FOR REFERENCE????
 
 ## IBM StockTrader application
 
@@ -588,115 +606,301 @@ ibm-charts              	https://raw.githubusercontent.com/IBM/charts/master/rep
 2. Deploy the IBM StockTrader application using the [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml) file:
 
 ```
-helm install -n <release_name> --tls --namespace stocktrader -f <st_app_values_v2.yaml> stocktrader/stocktrader-app --version "0.2.0"
+$ helm install -n test --tls --namespace stocktrader -f st_app_values_v2.yaml stocktrader/stocktrader-app --version "0.2.0"
+NAME:   test
+LAST DEPLOYED: Mon Jul  2 13:39:28 2018
+NAMESPACE: stocktrader
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Secret
+NAME                       TYPE    DATA  AGE
+stocktrader-db2            Opaque  5     4s
+strocktrader-ingress-host  Opaque  1     4s
+stocktrader-jwt            Opaque  2     4s
+stocktrader-mq             Opaque  7     4s
+stocktrader-odm            Opaque  1     4s
+stocktrader-oidc           Opaque  8     4s
+stocktrader-openwhisk      Opaque  3     4s
+stocktrader-redis          Opaque  2     4s
+stocktrader-twitter        Opaque  4     4s
+stocktrader-watson         Opaque  3     4s
+
+==> v1/ConfigMap
+NAME            DATA  AGE
+test-messaging  6     4s
+test-portfolio  4     4s
+test-trader     3     4s
+
+==> v1/Service
+NAME                  TYPE       CLUSTER-IP    EXTERNAL-IP  PORT(S)                        AGE
+notification-service  ClusterIP  10.10.10.171  <none>       9080/TCP,9443/TCP              4s
+portfolio-service     ClusterIP  10.10.10.105  <none>       9080/TCP,9443/TCP              4s
+stock-quote-service   ClusterIP  10.10.10.210  <none>       9080/TCP,9443/TCP              4s
+trader-service        NodePort   10.10.10.22   <none>       9080:31507/TCP,9443:32370/TCP  4s
+tradr-service         NodePort   10.10.10.58   <none>       3000:31007/TCP                 4s
+
+==> v1beta1/Deployment
+NAME                       DESIRED  CURRENT  UP-TO-DATE  AVAILABLE  AGE
+test-messaging             1        1        1           0          4s
+test-notification-twitter  1        1        1           0          4s
+test-portfolio             1        1        1           0          4s
+test-stock-quote           1        1        1           0          4s
+test-trader                1        1        1           1          4s
+test-tradr                 1        1        1           1          4s
+
+==> v1beta1/Ingress
+NAME                       HOSTS  ADDRESS  PORTS  AGE
+test-notification-twitter  *      80       4s
+test-portfolio             *      80       4s
+test-stock-quote           *      80       4s
+test-trader                *      80       4s
+
+==> v1/Pod(related)
+NAME                                        READY  STATUS             RESTARTS  AGE
+test-messaging-644ccbcd95-mwkjh             0/1    ContainerCreating  0         4s
+test-notification-twitter-6dd5f9d7dc-bsfs7  0/1    ContainerCreating  0         4s
+test-portfolio-75b4dbd485-k6rq4             0/1    ContainerCreating  0         4s
+test-stock-quote-7679899d76-rgkwr           0/1    ContainerCreating  0         4s
+test-trader-5446499c5b-ldkjk                1/1    Running            0         4s
+test-tradr-548b58bc55-jjr4c                 1/1    Running            0         4s
 ```
+
+## Verification
+
+Here we are going to explain how to quickly verify our IBM StockTrader application has successfully being deployed and it is working. This verification will not cover any potential issue occurred during the installation process above as we understand it is out of the scope of this work. We sort of assume the "happy path" applies.
+
+1. Check your Helm releases are installed:
+
+```
+$ helm list --namespace stocktrader --tls
+NAME    	REVISION	UPDATED                 	STATUS  	CHART                          	NAMESPACE  
+st-db2  	1       	Wed Jun 27 18:49:04 2018	DEPLOYED	ibm-db2oltp-dev-3.0.0          	stocktrader
+st-mq   	1       	Thu Jun 28 16:38:22 2018	DEPLOYED	ibm-mqadvanced-server-dev-1.3.0	stocktrader
+st-odm  	1       	Thu Jun 28 18:53:45 2018	DEPLOYED	ibm-odm-dev-1.0.0              	stocktrader
+st-redis	1       	Thu Jun 28 18:20:55 2018	DEPLOYED	redis-3.3.6                    	stocktrader
+test    	1       	Mon Jul  2 13:39:28 2018	DEPLOYED	stocktrader-app-0.2.0          	stocktrader
+```
+
+2. Check all the Kubernetes resources created and deployed by the Helm charts from the Helm releases above, specially the Kubernetes pods, all are `Running` and looking good:
+
+```
+$ kubectl get all
+NAME                                            READY     STATUS    RESTARTS   AGE
+po/st-db2-ibm-db2oltp-dev-0                     1/1       Running   0          4d
+po/st-mq-ibm-mq-0                               1/1       Running   0          3d
+po/st-odm-ibm-odm-dev-6699d55df5-fv9lv          1/1       Running   0          3d
+po/st-redis-master-0                            1/1       Running   0          3d
+po/st-redis-slave-5866f6f889-fkstr              1/1       Running   0          3d
+po/test-messaging-644ccbcd95-mwkjh              1/1       Running   0          10m
+po/test-notification-twitter-6dd5f9d7dc-bsfs7   1/1       Running   0          10m
+po/test-portfolio-75b4dbd485-k6rq4              1/1       Running   0          10m
+po/test-stock-quote-7679899d76-rgkwr            1/1       Running   0          10m
+po/test-trader-5446499c5b-ldkjk                 1/1       Running   0          10m
+po/test-tradr-548b58bc55-jjr4c                  1/1       Running   0          10m
+
+NAME                                      CLUSTER-IP     EXTERNAL-IP   PORT(S)                                   AGE
+svc/glusterfs-dynamic-st-db2-st-db2-pvc   10.10.10.6     <none>        1/TCP                                     20d
+svc/notification-service                  10.10.10.171   <none>        9080/TCP,9443/TCP                         10m
+svc/portfolio-service                     10.10.10.105   <none>        9080/TCP,9443/TCP                         10m
+svc/st-db2-ibm-db2oltp-dev                None           <none>        50000/TCP,55000/TCP,60006/TCP,60007/TCP   4d
+svc/st-db2-ibm-db2oltp-dev-db2            10.10.10.83    <nodes>       50000:32329/TCP,55000:31565/TCP           4d
+svc/st-mq-ibm-mq                          10.10.10.133   <nodes>       9443:31184/TCP,1414:32366/TCP             3d
+svc/st-odm-ibm-odm-dev                    10.10.10.39    <nodes>       9060:31101/TCP                            3d
+svc/st-redis-master                       10.10.10.208   <none>        6379/TCP                                  3d
+svc/st-redis-slave                        10.10.10.195   <none>        6379/TCP                                  3d
+svc/stock-quote-service                   10.10.10.210   <none>        9080/TCP,9443/TCP                         10m
+svc/trader-service                        10.10.10.22    <nodes>       9080:31507/TCP,9443:32370/TCP             10m
+svc/tradr-service                         10.10.10.58    <nodes>       3000:31007/TCP                            10m
+
+NAME                                  KIND
+statefulsets/st-db2-ibm-db2oltp-dev   StatefulSet.v1.apps
+statefulsets/st-mq-ibm-mq             StatefulSet.v1.apps
+statefulsets/st-redis-master          StatefulSet.v1.apps
+
+NAME                             DESIRED   SUCCESSFUL   AGE
+jobs/initialise-stocktrader-db   1         1            4d
+
+NAME                               DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deploy/st-odm-ibm-odm-dev          1         1         1            1           3d
+deploy/st-redis-slave              1         1         1            1           3d
+deploy/test-messaging              1         1         1            1           10m
+deploy/test-notification-twitter   1         1         1            1           10m
+deploy/test-portfolio              1         1         1            1           10m
+deploy/test-stock-quote            1         1         1            1           10m
+deploy/test-trader                 1         1         1            1           10m
+deploy/test-tradr                  1         1         1            1           10m
+
+NAME                                      DESIRED   CURRENT   READY     AGE
+rs/st-odm-ibm-odm-dev-6699d55df5          1         1         1         3d
+rs/st-redis-slave-5866f6f889              1         1         1         3d
+rs/test-messaging-644ccbcd95              1         1         1         10m
+rs/test-notification-twitter-6dd5f9d7dc   1         1         1         10m
+rs/test-portfolio-75b4dbd485              1         1         1         10m
+rs/test-stock-quote-7679899d76            1         1         1         10m
+rs/test-trader-5446499c5b                 1         1         1         10m
+rs/test-tradr-548b58bc55                  1         1         1         10m
+```
+
+3. Open the IBM StockTrader application by pointing your browser to `https://<proxy_ip>:<trader_microservice_nodeport>/trader/login` (check the [installation](#installation) section to find out how to obtain those values):
+
+![st-login](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency14.png)
+
+**IMPORTANT:** Depending on what version of the **Trader** microservice (`basicregistry` or `latest`) you have deployed, the login screen will look differently. In the image above, we are showing the "simplest" path which is using the `basicregistry` version.
+
+4. Log into the IBM StockTrader application using User ID `stock` and Password `trader`:
+
+![st-app](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency15.png)
+
+**IMPORTANT:** Again, based on the **Trader** microservice version you have deployed, you will use the aforementioned credentials or your IBMid credentials.
+
+5. Click on Create a new portfolio and submit in order to create a test portfolio. Introduce the name for the portfolio you like the most and click on submit:
+
+![st-create](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency16.png)
+
+6. With your newly created portfolio selected, click on Update selected portfolio (add stock) and submit. Then, introduce `IBM` and `400` for the Stock Symbol and Number of Shares fields respectively and click submit:
+
+![st-add](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency17.png)
+
+7. Your IBM StockTrader application should now have a portfolio with 400 IBM shares:
+
+![st-summary](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency18.png)
+
+9. Since we have added enough stock to advance our portfolio to a higher Loyalty Level (SILVER), we should have got a new tweet on our twitter account to notify us of such a change:
+
+![st-twitter](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency19.png)
+
+## Uninstallation
+
+Since we have used `Helm` to install both the IBM StockTrader application and the IBM (and third party) middleware the application needs, we then only need to issue the `helm delete <release_name> --purge --tls ` command to get all the pieces installed by a Helm chart in the release `<release_name>` uninstalled:
+
+As an example, in order to delete all the IBM StockTrader application pieces installed by its Helm chart when we install them as the `test` Helm release,
+
+```
+$ helm delete test --purge --tls
+release "test" deleted
+```
+
+If we now look at what we have running on our `stocktrader` namespace within our IBM Cloud Private (ICP) cluster, we should not see any of the pieces installed by the IBM StockTrader application Helm chart:
+
+```
+$ kubectl get all
+NAME                                     READY     STATUS    RESTARTS   AGE
+po/st-db2-ibm-db2oltp-dev-0              1/1       Running   0          4d
+po/st-mq-ibm-mq-0                        1/1       Running   0          3d
+po/st-odm-ibm-odm-dev-6699d55df5-fv9lv   1/1       Running   0          3d
+po/st-redis-master-0                     1/1       Running   0          3d
+po/st-redis-slave-5866f6f889-fkstr       1/1       Running   0          3d
+
+NAME                                      CLUSTER-IP     EXTERNAL-IP   PORT(S)                                   AGE
+svc/glusterfs-dynamic-st-db2-st-db2-pvc   10.10.10.6     <none>        1/TCP                                     20d
+svc/st-db2-ibm-db2oltp-dev                None           <none>        50000/TCP,55000/TCP,60006/TCP,60007/TCP   4d
+svc/st-db2-ibm-db2oltp-dev-db2            10.10.10.83    <nodes>       50000:32329/TCP,55000:31565/TCP           4d
+svc/st-mq-ibm-mq                          10.10.10.133   <nodes>       9443:31184/TCP,1414:32366/TCP             3d
+svc/st-odm-ibm-odm-dev                    10.10.10.39    <nodes>       9060:31101/TCP                            3d
+svc/st-redis-master                       10.10.10.208   <none>        6379/TCP                                  3d
+svc/st-redis-slave                        10.10.10.195   <none>        6379/TCP                                  3d
+
+NAME                                  KIND
+statefulsets/st-db2-ibm-db2oltp-dev   StatefulSet.v1.apps
+statefulsets/st-mq-ibm-mq             StatefulSet.v1.apps
+statefulsets/st-redis-master          StatefulSet.v1.apps
+
+NAME                             DESIRED   SUCCESSFUL   AGE
+jobs/initialise-stocktrader-db   1         1            4d
+
+NAME                        DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+deploy/st-odm-ibm-odm-dev   1         1         1            1           3d
+deploy/st-redis-slave       1         1         1            1           3d
+
+NAME                               DESIRED   CURRENT   READY     AGE
+rs/st-odm-ibm-odm-dev-6699d55df5   1         1         1         3d
+rs/st-redis-slave-5866f6f889       1         1         1         3d
+```
+
+and, of course, the Helm release should not be listed either:
+
+```
+$ helm list --namespace stocktrader --tls
+NAME          	REVISION	UPDATED                 	STATUS  	CHART                          	NAMESPACE     
+st-db2        	1       	Wed Jun 27 18:49:04 2018	DEPLOYED	ibm-db2oltp-dev-3.0.0          	stocktrader
+st-mq         	1       	Thu Jun 28 16:38:22 2018	DEPLOYED	ibm-mqadvanced-server-dev-1.3.0	stocktrader
+st-odm        	1       	Thu Jun 28 18:53:45 2018	DEPLOYED	ibm-odm-dev-1.0.0              	stocktrader
+st-redis      	1       	Thu Jun 28 18:20:55 2018	DEPLOYED	redis-3.3.6                    	stocktrader
+```
+
+If you wanted to clean your entire `stocktrader` namespace, you would need to do the same with the other Helm charts installed using their Helm release names: `st-mq`, `st-db2`, `st-odm` and `st-redis`.
 
 ## Test
 
-**IMPORTANT:** The basic registry stocktrader version do not support SSO and therefore its BFF **can not be scaled up**. The other microservices can be scaled and the basic_registry tests below will work fine.
-If you want to scale up the BFF too, you need to use the **latest** version of stocktrader which uses OIDC and therefore use the oidc scripts below.
+In this section we provide plain shell scripts to
+
+1. Perform basic load test on the IBM StockTrader application to simulate common user interaction with the application by executing end-to-end scenarios trying to exercise all IBM StockTrader application components as much as possible.
+  - [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh)
+  - [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh)
+  - [threaded_main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_basic_registry.sh)
+  - [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_oidc.sh)
+
+2. Simulate IBM Cloud Private (ICP) platform Kubernetes pod failures that compromises the IBM StockTrader application resiliency.
+  [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh)
+
+The IBM StockTrader's backend for frontend (BFF) microservice used to carry out the test is the **Trader** microservice. As already mentioned in this readme, the Trader microservice is served in two versions as far as authentication and authorisation of the requests is concerned. One uses plain user and password (`basicregistry`) and the other integrates with the IBMid service as the Identity Provider (IP) for the Open ID Connect (OIDC) mechanism (`latest`).
+
+### Load Test
+
+The IBM StockTrader load test scripts will interact with the IBM StockTrader application through **REST calls** against the **Trader** backend for frontend (BFF) microservice. The load test scripts' workflow looks like:
+
+1. Remove the output from previous executions (`output` directory).
+2. Log into the StockTrader application (only on the `basic_registry` shell scripts).
+3. Delete existing portfolios from previous executions.
+4. For each iteration, it will for each portfolio
+   1. Create the portfolio if it is iteration number 1.
+   2. Add the amount of shares specified for each of the symbols (IBM, APPLE and GOOGLE).
+   3. Create a summary for the iteration into the `output` directory (`summary_iteration_#.html` or `summary_thread_#_iteration_#.html`).
+5. Create a final summary (`summary_final.html`) and export the database (`portfolio_final.txt` and `stock_final.txt`) reports into the `output` directory so that we can make sure the application has function as expected.
+
+There is a second version of the script above where the main body (point 4) has been threaded in order to get a better request per second throughput. Those scripts are preceded with `threaded_` on their file names.
+
+Finally, both the sequential and threaded versions have got their login section tailored to the two already well mentioned **Trader** microservice authentication and authorisation mechanisms `basicregistry` and `latest`.
+
+As a result, we count with 4 load test scripts which we explain in further detail below.
 
 #### main_looper_basic_registry.sh
 
-This script will
+The [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh) will execute the workflow described in the [Load Test](#load-test) section above in a **sequential manner** with the **login section automated** using stock and trader as user and password when the **Trader** microservice version deployed is `basicregistry`.
 
-1. Remove the old output directory (where the output of the test will go into)
-2. Log into the StockTrader application using `stock/trader` as the default credentials (this will create a cookies.txt file)
-3. Delete existing users (if any). This will use [users.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/users.sh)
-4. Based on the number of iterations it will for each user
-   1. Create the user if it is iteration number 1
-   2. Add the amount of shares specified to the script for each of the symbols (IBM, APPLE and GOOGLE).
-   3. Create a summary for the iteration
-5. Finally, once all the action has happened, it will create a final summary and export the database so that we can check it out to make sure the application has function as expected.
+The [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh) script expects the following parameters:
 
-```
-######################################
-##                                  ##
-##               TEST               ##
-##                                  ##
-######################################
-
-echo "[`date '+%Y-%m-%d %H:%M:%S'`]: Begin of script"
-echo
-
-# Prepare output folder
-if [ -d "${DIRECTORY}" ]; then
-  rm -rf ${DIRECTORY} && mkdir ${DIRECTORY}
-else
-  mkdir ${DIRECTORY}
-fi
-
-# Logging into the application
-login
-
-# Deleting previous users
-delete_users
-
-# Iterations
-for iteration in $(seq $NUM_ITERATIONS)
-do
-  echo "[`date '+%Y-%m-%d %H:%M:%S'`]: ----- Begin Iteration $iteration"
-  echo
-
-  # For each user
-  for user in $(seq $NUM_USERS)
-  do
-    # Set user
-    USER="User_${user}"
-
-    # Create user if first iteration
-    if [ $iteration -eq 1 ]; then
-      create
-    fi
-
-    # Add shares of each symbol
-    for symbol in ${SYMBOLS}
-    do
-      SYMBOL=${symbol}
-      update
-    done
-  done
-
-  # Results after an iteration
-  summary "iteration_${iteration}"
-  #export_db "iteration_${iteration}"
-
-  echo "[`date '+%Y-%m-%d %H:%M:%S'`]: ----- End Iteration $iteration"
-  echo
-done
-
-# Final results
-echo "[`date '+%Y-%m-%d %H:%M:%S'`]: Getting final results"
-summary "final"
-export_db "final"
-echo "[`date '+%Y-%m-%d %H:%M:%S'`]: Done"
-
-echo
-echo "[`date '+%Y-%m-%d %H:%M:%S'`]: End of script"
-exit 0
-```
-
-All the actions performed against the stocktrader application will be made on a REST call fashion to the BFF of it.
-
-The script expects the following parameters:
-
-- $1: your ICP proxy IP
-- $2: trader microservice nodeport
-- $3: Number of iterations
-- $4: Number of users
-- $5: Number of shared to add of each symbol per user and iteration
+- $1: your `<proxy_ip>`.
+- $2: your `<trader_microservice_nodeport>`.
+- $3: Number of iterations.
+- $4: Number of portfolios.
+- $5: Number of shares to add of each symbol per portfolio and iteration.
 
 Example: `sh main_looper_basic_registry.sh 172.16.40.176 32370 3 6 1`
 
 #### main_looper_oidc.sh
 
-This script will do exactly the same as previous one but will not log into the application as this has to be done manually  using firefox for now by pointing the browser to `https://<ICP_PROXY_IP>:<TRADER_MICROSERVICE_NODEPORT>/trader/login`. Using the cookies.txt firefox add-on we need to manually export the firefox cookies to a txt file which is required as a parameter of this script.
+The [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh) script will do exactly the same as the previous `basicregistry` version but will not log into the application automatically. The reason for this is that we encountered some problems automating such task which did not make sense to invest more time investigating.
+
+As a result, the logging into the IBM StockTrader application `latest` version has to be done manually and the appropriate associated cookies exported in order to get the load testing scripts executed against. To export the appropriate cookies associated with the manual logging into the IBM StockTrader application, we have used Firefox to log into the IBM StockTrader application and the [cookies.txt Firefox add-on](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) for exporting the cookies.
+
+The [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh) script expects the following parameters:
+
+- $1: your `<proxy_ip>`.
+- $2: your `<trader_microservice_nodeport>`.
+- $3: Number of iterations.
+- $4: Number of portfolios.
+- $5: Number of shares to add of each symbol per portfolio and iteration.
+- $6: IBM StockTrader authorisation and authorisation cookies file.
 
 Example: `sh main_looper_oidc.sh 172.16.40.176 32370 3 6 1 cookies.txt`
 
-#### threaded_main_looper_basic_registry.sh
+#### threaded_main_looper_basic_registry.sh and threaded_main_looper_oidc.sh
 
-This script will do exactly the same as **main_looper_basic_registry.sh** but will do so in **parallel** as many times as the number of threads you have specified as parameter. That is, for each thread it will execute (in parallel) the [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/user_loop.sh) script
+The [threaded_main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_basic_registry.sh) and [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_oidc.sh) scripts will do work exactly the same as their non-threaded versions explained above but will execute the main stock adding workflow piece in parallel for a better request per second throughput.
+
+That is, from these scripts we will execute the [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/user_loop.sh) script in parallel as many times as threads has the main load test scripts been specified with:
 
 ```
 for thread in $(seq $NUM_THREADS)
@@ -705,82 +909,169 @@ do
   sh user_loop.sh ${PROXY_IP} ${BFF_NODEPORT} ${thread} ${NUM_ITERATIONS} ${NUM_USERS} ${NUMBER_OF_SHARES} ${COOKIE_FILE} ${DIRECTORY} &
 done
 ```
-which, in turn, will
 
-1. Based on the number of iterations it will for each user
-   1. Create the user if it is iteration number 1
-   2. Add the amount of shares specified to the script for each of the symbols (IBM, APPLE and GOOGLE).
-   3. Create a summary for the iteration
-2. Create a summary afer each iteration
+where [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/user_loop.sh), will, in turn and in parallel, execute the adding stock code from the non-threaded script versions.
 
-```
-######################################
-##                                  ##
-##               TEST               ##
-##                                  ##
-######################################
+The scripts expects the following parameters:
 
-echo "[`date '+%H:%M:%S'`] [${THREAD}] - Begin of script"
-
-# Iterations
-for iteration in $(seq $NUM_ITERATIONS)
-do
-  echo "[`date '+%H:%M:%S'`] [${THREAD}] - Begin Iteration $iteration"
-
-  # For each user
-  for user in $(seq $NUM_USERS)
-  do
-
-    # Set user
-    USER="User_${THREAD}_${user}"
-
-    # Create user if first iteration
-    if [ ${iteration} -eq 1 ]; then
-      create
-    fi
-
-    # Add shares of each symbol
-    for symbol in ${SYMBOLS}
-    do
-      SYMBOL=${symbol}
-      update
-    done
-  done
-
-  # Results after an iteration
-  summary "thread_${THREAD}_iteration_${iteration}"
-  #export_db "iteration_${iteration}"
-
-  echo "[`date '+%H:%M:%S'`] [${THREAD}] - End Iteration $iteration"
-done
-```
-
-All the actions performed against the stocktrader application will be made on a REST call fashion to the BFF of it.
-
-The script expects the following parameters:
-
-- $1: your ICP proxy IP
-- $2: trader microservice nodeport
+- $1: your `<proxy_ip>`.
+- $2: your `<trader_microservice_nodeport>`.
 - $3: Number of threads
 - $4: Number of iterations
 - $5: Number of users
-- $6: Number of shared to add of each symbol per user and iteration
+- $6: Number of shares to add of each symbol per portfolio and iteration
+- $7: IBM StockTrader authorisation and authorisation cookies file (`oidc` version only).
 
 Example: `sh threaded_main_looper_basic_registry.sh 172.16.40.176 32370 2 3 6 1`
 
-#### threaded_main_looper_oidc.sh
+Example: `sh threaded_main_looper_oidc.sh 172.16.40.176 32370 2 3 6 1 cookies.txt` (`oidc` version)
 
-This script will do exactly the same as previous one but will not log into the application as this has to be done manually  using firefox for now by pointing the browser to `https://<ICP_PROXY_IP>:<TRADER_MICROSERVICE_NODEPORT>/trader/login`. Using the cookies.txt firefox add-on we need to manually export the firefox cookies to a txt file which is required as a parameter of this script.
+#### Execution
 
-Example: `sh threaded_main_looper_oidc.sh 172.16.40.176 32370 2 3 6 1 cookies.txt`
+Here we are going to demo the execution of the non-threaded `basicregistry` version of the load test scripts and what the output of it would be (the threaded version would create more users which would just generate higher requests per second):
 
-#### Links
+```
+$ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20
+[2018-07-03 11:46:33]: Begin of script
 
-- https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Building_Stock_Trader_in_IBM_Cloud_Private_2_1_using_Production_Services?lang=en
+[11:46:33] [MAIN] - IBM Cloud Private (ICP) proxy IP: 172.16.40.176
+[11:46:33] [MAIN] - IBM StockTrader BFF NodePort: 32370
 
-- New blog to come out for the newer StockTrader architecture that uses watson, IEX, ODM, etc
+[11:46:33] [MAIN] - Number of iterations: 4
+[11:46:33] [MAIN] - Number of users: 2
+[11:46:33] [MAIN] - Number of shares to add per iteration per symbol: 20
 
-- https://github.com/IBMStockTrader
+[2018-07-03 11:46:33]: Logging into the IBM StockTrader application using stock and trader...
+[2018-07-03 11:46:34]: Done
+
+[2018-07-03 11:46:34]: Deleting all previous users...
+[2018-07-03 11:46:56]: deleting user User_1
+[2018-07-03 11:46:58]: deleting user User_2
+[2018-07-03 11:47:00]: Done
+
+[2018-07-03 11:47:00]: ----- Begin Iteration 1
+
+[2018-07-03 11:47:00]: Creating user User_1...
+[2018-07-03 11:47:02]: Done
+
+[2018-07-03 11:47:09]: Creating user User_2...
+[2018-07-03 11:47:10]: Done
+
+[2018-07-03 11:47:20]: ----- End Iteration 1
+
+[2018-07-03 11:47:20]: ----- Begin Iteration 2
+
+[2018-07-03 11:47:37]: ----- End Iteration 2
+
+[2018-07-03 11:47:37]: ----- Begin Iteration 3
+
+[2018-07-03 11:47:54]: ----- End Iteration 3
+
+[2018-07-03 11:47:54]: ----- Begin Iteration 4
+
+[2018-07-03 11:48:11]: ----- End Iteration 4
+
+[2018-07-03 11:48:11]: Getting final results
+[2018-07-03 11:48:30]: Done
+
+[2018-07-03 11:48:30]: End of script
+```
+
+As we can read above, the load test script has created two users (portfolios) to which has added 20 shares per symbol (IBM, GOOGLE, ORACLE) each iteration (4 iterations) making IBM StockTrader to look like this
+
+![demo-main](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency20.png)
+
+and our twitter account to look like this after having those two portfolios progressed few loyalty levels up:
+
+![demo-twitter](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency21.png)
+
+As explained in the [Load Test](#load-test) section, the load test scripts also produce some more detailed test results into the `output` directory:
+
+```
+$ ls output
+portfolio_final.txt
+stock_final.txt
+summary_final.html
+summary_iteration_1.html
+summary_iteration_2.html
+summary_iteration_3.html
+summary_iteration_4.html
+```
+where the `summary html` files would be a graphical snapshot of who the IBM StockTrader application looks like after each iteration and at the end of the load test script execution and `portfolio.txt` and `stock_final.txt` an IBM StockTrader application database dump at the end of the load test script execution:
+
+```
+$ cat portfolio_final.txt
+
+OWNER                            TOTAL                    LOYALTY  BALANCE                  COMMISSIONS              FREE        SENTIMENT       
+-------------------------------- ------------------------ -------- ------------------------ ------------------------ ----------- ----------------
+User_1                             +1.16360000000000E+005 GOLD       -5.18800000000000E+001   +1.01880000000000E+002           0 Unknown         
+User_2                             +1.16360000000000E+005 GOLD       -5.18800000000000E+001   +1.01880000000000E+002           0 Unknown         
+
+  2 record(s) selected.
+```
+```
+$ cat stock_final.txt
+
+OWNER                            SYMBOL   SHARES      PRICE                    TOTAL                    DATEQUOTED COMMISSION              
+-------------------------------- -------- ----------- ------------------------ ------------------------ ---------- ------------------------
+User_1                           IBM               80   +1.39860000000000E+002   +1.11888000000000E+004 07/02/2018   +3.49600000000000E+001
+User_1                           GOOG              80   +1.12746000000000E+003   +9.01968000000000E+004 07/02/2018   +3.49600000000000E+001
+User_1                           AAPL              80   +1.87180000000000E+002   +1.49744000000000E+004 07/02/2018   +3.19600000000000E+001
+User_2                           IBM               80   +1.39860000000000E+002   +1.11888000000000E+004 07/02/2018   +3.49600000000000E+001
+User_2                           GOOG              80   +1.12746000000000E+003   +9.01968000000000E+004 07/02/2018   +3.49600000000000E+001
+User_2                           AAPL              80   +1.87180000000000E+002   +1.49744000000000E+004 07/02/2018   +3.19600000000000E+001
+
+  6 record(s) selected.
+```
+
+### Chaos
+
+This section covers the implementation of a Kubernetes pod failure test script. The script is actually called [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh) and it is a tailored piece of the work presented in this [GitHub repository by Eduardo Patrocinio](https://github.com/patrocinio/kubernetes-pod-chaos-monkey) to suit our needs.
+
+Given a namespace (default namespace is default), the IBM StockTrader application Helm release name and a delay (default 10 seconds), the [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh) script will then randomly choose a Running pod within that namespace which belongs to the specified IBM StockTrader application Helm release and terminate it:
+
+```
+while true; do
+  POD=`kubectl \
+    --namespace "${NAMESPACE}" \
+    -o 'jsonpath={.items[*].metadata.name}' \
+    get pods | \
+      tr " " "\n" | \
+      grep ${UNIQUE_ID} | \
+      grep Running | \
+      grep -v trad | \
+      gshuf | \
+      head -n 1`
+  echo Deleting Pod ${POD}...
+  kubectl --namespace "${NAMESPACE}" delete pod ${POD}
+  sleep "${DELAY}"
+done
+```
+
+this way we simulate failures on the IBM Cloud Private (ICP) platform that will allow us to study the IBM StockTrader application resiliency as the cloud native stateless microservices based reference application for the IBM Cloud Private (ICP) resiliency at the application level initial scenario.
+
+Example:
+
+```
+$ sh chaos.sh 10 stocktrader test
+[2018-07-03 16:14:15]: Begin of script
+
+Delay: 10
+Namespace: stocktrader
+Unique ID (Helm release): test
+
+Deleting Pod test-notification-twitter-6dd5f9d7dc-bsfs7...
+pod "test-notification-twitter-6dd5f9d7dc-bsfs7" deleted
+
+Deleting Pod test-portfolio-75b4dbd485-k6rq4...
+pod "test-portfolio-75b4dbd485-k6rq4" deleted
+
+Deleting Pod test-notification-twitter-6dd5f9d7dc-5rmh4...
+pod "test-notification-twitter-6dd5f9d7dc-5rmh4" deleted
+^C
+```
+
+As you can see, the [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh) script will run until a kill signal is sent to it (ctrl+c).
 
 ## Files
 
@@ -804,13 +1095,36 @@ This section will describe each of the files presented in this repository. In he
 
 #### Test
 
-TO BE REVIEWED YET!!!
+- [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh): Shell script that simulates Kubernetes pod failures.
+- [delete_all_tweets.py](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/delete_all_tweets.py): Python script to delete all tweets from a given twitter account.
+- [export.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/export.sh): Shell script to export the IBM StockTrader application database to a text file.
+- [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh): Single-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
+- [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh): Single-threaded IBM StockTrader load test script to be used when `latest` Trader microservice version.
+- [threaded_main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_basic_registry.sh): Multi-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
+- [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_oidc.sh): Multi-threaded IBM StockTrader test script to be used when `latest` Trader microservice version.
+- [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/user_loop.sh): Simulated user behavior load test script to be called by the multi-threaded IBM StockTrader test scripts to carry out the adding stock workflow piece.
+- [users.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/users.sh): Shell script to export the IBM StockTrader portfolios to a text file.
+- [get_logs.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/get_logs.sh): Shell script to get all the logs from a Helm release since a period of time (if specified).
 
-- [export.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/export.sh): Shell script to export IBM StockTrader DB to a text file.
-- [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh): Single-threaded IBM StockTrader test script to be used when security is basic registry.
-- [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh): Single-threaded IBM StockTrader test script to be used when security is OIDC.
-- [threaded_main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_basic_registry.sh): Multi-threaded IBM StockTrader test script to be used when security is basic registry.
-- [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_oidc.sh): Multi-threaded IBM StockTrader test script to be used when security is OIDC.
-- [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/user_loop.sh): User behavior simulated test script to be called by the multi-threaded IBM StockTrader test script.
-- [users.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/users.sh): Shell script to export IBM StockTrader users to a text file.
-- [get_logs.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/get_logs.sh): Shell script get all the logs from a Helm release since a period of time (if specified).
+## Links
+
+This section gathers all links to IBM StockTrader application sort of documentation.
+
+- [Building Stock Trader in IBM Cloud Private 2.1 using Production Services](https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Building_Stock_Trader_in_IBM_Cloud_Private_2_1_using_Production_Services?lang=en)
+
+- [IBM StockTrader GitHub repository](https://github.com/IBMStockTrader)
+
+- [IBM Cloud private: Continuously Deliver Java Apps with IBM Cloud private and Middleware Services (video)](https://www.youtube.com/watch?v=ctuUTDIClms&feature=youtu.be)
+
+- [Introducing IBM Cloud Private](https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Introducing_IBM_Cloud_private?lang=en)
+
+- [Build and Continuously Deliver a Java Microservices App in IBM Cloud private](https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Build_and_Continuously_Deliver_a_Java_Microservices_App_in_IBM_Cloud_private?lang=en)
+
+Developing Microservices for IBM Cloud Private
+https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Developing_microservices_for_IBM_Cloud_private?lang=en
+
+- [Use Kubernetes Secrets to Make Your App Portable Across Clouds](https://developer.ibm.com/recipes/tutorials/use-kubernetes-secrets-to-make-your-app-portable-across-clouds/)
+
+- [Deploy MQ-Dev into IBM Cloud Private 2.1](https://developer.ibm.com/recipes/tutorials/deploy-mq-into-ibm-cloud-private/)
+
+- [Db2 Integration into IBM Cloud Private](https://developer.ibm.com/recipes/tutorials/db2-integration-into-ibm-cloud-private/)
