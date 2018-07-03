@@ -1,8 +1,11 @@
 # stocktrader-resiliency
 
 **LATEST ENV**
+
 https://172.16.40.176:32370/trader/summary
+
 Namepsace: stocktrader
+
 ---
 
 1.  [Introduction](#introduction)
@@ -1120,8 +1123,7 @@ This section gathers all links to IBM StockTrader application sort of documentat
 
 - [Build and Continuously Deliver a Java Microservices App in IBM Cloud private](https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Build_and_Continuously_Deliver_a_Java_Microservices_App_in_IBM_Cloud_private?lang=en)
 
-Developing Microservices for IBM Cloud Private
-https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Developing_microservices_for_IBM_Cloud_private?lang=en
+- [Developing Microservices for IBM Cloud Private](https://www.ibm.com/developerworks/community/blogs/5092bd93-e659-4f89-8de2-a7ac980487f0/entry/Developing_microservices_for_IBM_Cloud_private?lang=en)
 
 - [Use Kubernetes Secrets to Make Your App Portable Across Clouds](https://developer.ibm.com/recipes/tutorials/use-kubernetes-secrets-to-make-your-app-portable-across-clouds/)
 
