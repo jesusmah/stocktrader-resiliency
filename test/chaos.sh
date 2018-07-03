@@ -1,6 +1,8 @@
 #!/bin/bash
 # Randomly delete pods in a Kubernetes namespace.
-set -ex
+
+echo "[`date '+%Y-%m-%d %H:%M:%S'`]: Begin of script"
+echo
 
 DELAY=${1:-30}
 NAMESPACE=${2:-default}
@@ -10,6 +12,11 @@ if [ -z ${UNIQUE_ID} ]; then
   echo "[ERROR]: Please specify a unique identifier for your Helm release"
   exit 1
 fi
+
+echo "Delay: ${DELAY}"
+echo "Namespace: ${NAMESPACE}"
+echo "Unique ID (Helm release): ${UNIQUE_ID}"
+echo
 
 while true; do
   POD=`kubectl \
@@ -23,5 +30,6 @@ while true; do
       head -n 1`
   echo Deleting Pod ${POD}...
   kubectl --namespace "${NAMESPACE}" delete pod ${POD}
+  echo
   sleep "${DELAY}"
 done

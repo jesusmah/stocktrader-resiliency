@@ -118,10 +118,13 @@ delete_users()
 
 echo "[`date '+%H:%M:%S'`] [MAIN] - Begin of script"
 echo
+echo "[`date '+%H:%M:%S'`] [MAIN] - IBM Cloud Private (ICP) proxy IP: ${PROXY_IP}"
+echo "[`date '+%H:%M:%S'`] [MAIN] - IBM StockTrader BFF NodePort: ${BFF_NODEPORT}"
+echo
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of threads: ${NUM_THREADS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of iterations: ${NUM_ITERATIONS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of users: ${NUM_USERS}"
-echo "[`date '+%H:%M:%S'`] [MAIN] - Number of shares to add per iteration: ${NUMBER_OF_SHARES}"
+echo "[`date '+%H:%M:%S'`] [MAIN] - Number of shares to add per iteration per symbol: ${NUMBER_OF_SHARES}"
 echo
 
 # Prepare output folder
