@@ -1105,8 +1105,10 @@ where all IBM StockTrader application microservices are scaled up to 3 replicas 
 
 The number of requests the load test scripts make to the IBM StockTrader application Trader backend for frontend microservice is calculated considering main loops only and leaving out preparation or summary requests. The equations look like this:
 
+```
 main_looper_basic_registry.sh = #Users + ( #Iteration * #Users * #Symbols(=3) ) + #Iterations
 threaded_main_looper_basic_registry.sh = #Threads * ( #Users + ( #Iterations * #Users * #Symbols(=3) ) + #Iterations )
+```
 
 ### Monkey Chaos
 
