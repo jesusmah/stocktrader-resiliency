@@ -9,8 +9,9 @@ THREAD=$3
 NUM_ITERATIONS=$4
 NUM_USERS=$5
 NUMBER_OF_SHARES=$6
-COOKIE_FILE=$7
-DIRECTORY=$8
+MULT_FACTOR=${7-1}
+COOKIE_FILE=$8
+DIRECTORY=$9
 
 ###################
 ## Share symbols ##
@@ -119,7 +120,7 @@ do
       update
     done
   done
-
+  NUMBER_OF_SHARES=$((NUMBER_OF_SHARES*MULT_FACTOR))
   # Results after an iteration
   summary "thread_${THREAD}_iteration_${iteration}"
   #export_db "iteration_${iteration}"

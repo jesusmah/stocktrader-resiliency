@@ -8,11 +8,12 @@ BFF_NODEPORT=$2
 NUM_ITERATIONS=$3
 NUM_USERS=$4
 NUMBER_OF_SHARES=$5
+MULT_FACTOR=${6:-1}
 
 ##################
 ## Cookies file ##
 ##################
-COOKIE_FILE=$6
+COOKIE_FILE=$7
 
 ######################
 ## output directory ##
@@ -171,6 +172,7 @@ echo
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of iterations: ${NUM_ITERATIONS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of users: ${NUM_USERS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of shares to add per iteration per symbol: ${NUMBER_OF_SHARES}"
+echo "[`date '+%H:%M:%S'`] [MAIN] - Multiplication factor for shares: ${MULT_FACTOR}"
 echo
 
 # Prepare output folder
@@ -209,6 +211,7 @@ do
       SYMBOL=${symbol}
       update
     done
+    NUMBER_OF_SHARES=$((NUMBER_OF_SHARES*MULT_FACTOR))
   done
 
   # Results after an iteration

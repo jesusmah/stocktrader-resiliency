@@ -1,8 +1,6 @@
 # stocktrader-resiliency
 
-**LATEST ENV**
-
-https://172.16.40.176:32370/trader/summary
+**LATEST ENV:** https://172.16.40.176:32370/trader/summary
 
 Namepsace: stocktrader
 
@@ -22,7 +20,9 @@ Namepsace: stocktrader
 5.  [Uninstallation](#uninstallation)
 6.  [Test](#test)
     - [Load Test](#load-test)
-    - [Chaos](#chaos)
+    - [Load Test Throughput](#load-test-throughput)
+    - [Monkey Chaos](#monkey-chaos)
+    - [Test Execution](#test-execution)
 7.  [Files](#files)
 8.  [Links](#links)
 
@@ -44,11 +44,11 @@ As a result, the IBM StockTrader application is a microservices application base
 
 The overall architecture looks like the following diagram:
 
-![st-arch](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/st-arch.png)
+![st-arch](images/st-arch.png)
 
 Where you can find StockTrader specific microservices in blue and IBM middleware in purple all running on IBM Cloud Private (ICP), IBM Cloud Public services in green and other third party applications in other different colours.
 
-#### Application flow
+### Application flow
 
 There are mainly 4 actions you can execute against the IBM StockTrader application once you are logged in:
 
@@ -85,6 +85,17 @@ There are mainly 4 actions you can execute against the IBM StockTrader applicati
     3. `portfolio microservice` interacts with the DB2 database through a JDBC Datasource to retrieve the appropriate records and data from the DB for the portfolio indicated **(3)**.
     4. `portfolio microservice` returns all the data for the portfolio specified by the user to the `trader microservice (BFF)`and this presents it to the end user on the browser **(2)**.
 
+#### Loyalty Levels
+
+The loyalty levels for the IBM StockTrader application are set as follows:
+
+| Loyalty Level | Stock |
+| --- | --- |
+| BASIC | 0 - 10.000 |
+| BRONZE | 10.001 - 50.000 |
+| SILVER | 50.001 - 100.000 |
+| GOLD | 100.001 - 1.000.000 |
+| PLATINUM | > 1.000.001 |
 
 ## Installation
 
@@ -146,7 +157,7 @@ default-token-t92bq   kubernetes.io/service-account-token   3         51d
 st-docker-registry    kubernetes.io/dockercfg               1         28s
 ```
 
-2. Install IBM Db2 Developer-C Edition using the [db2_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/db2_values.yaml) file:
+2. Install IBM Db2 Developer-C Edition using the [db2_values.yaml](installation/middleware/db2_values.yaml) file:
 
 ```
 $ helm install -n st-db2 --namespace stocktrader --tls ibm-charts/ibm-db2oltp-dev -f db2_values.yaml
@@ -195,14 +206,14 @@ The command above will take few minutes at least. Monitor the recently created D
 ```
 At this point we can be sure the IBM Db2 Developer-C Edition and the **STOCKTRD** database have successfully been installed and created respectively.
 
-3. Now, we need to create the appropriate structure in the **STOCKTRD** database that the IBM StockTrader application needs. We do so by initialising the database with the [initialise_stocktrader_db_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v2.yaml) file:
+3. Now, we need to create the appropriate structure in the **STOCKTRD** database that the IBM StockTrader application needs. We do so by initialising the database with the [initialise_stocktrader_db_v2.yaml](installation/middleware/initialise_stocktrader_db_v2.yaml) file:
 
 ```
 $ kubectl apply -f initialise_stocktrader_db_v2.yaml
 job "initialise-stocktrader-db" created
 ```
 
-the command above created a Kubernetes job which spun up a simple db2express-c container that contains the IBM DB2 tools to execute an sql file against a DB2 database on a remote host. The sql file that gets executed against a DB2 database on a remote host is actually the one that initialises the database with appropriate structures the IBM StockTrader application needs. The sql file is [initialise_stocktrader_db_v2.sql](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v2.sql).
+the command above created a Kubernetes job which spun up a simple db2express-c container that contains the IBM DB2 tools to execute an sql file against a DB2 database on a remote host. The sql file that gets executed against a DB2 database on a remote host is actually the one that initialises the database with appropriate structures the IBM StockTrader application needs. The sql file is [initialise_stocktrader_db_v2.sql](installation/middleware/initialise_stocktrader_db_v2.sql).
 
 Check the Kubernetes job to make sure it has finished before moving on:
 
@@ -217,7 +228,7 @@ initialise-stocktrader-db   1         1            4m
 ```
 $ kubectl exec `kubectl get pods | grep ibm-db2oltp-dev | awk '{print $1}'` \
         -- bash -c "yum -y install wget && cd /tmp && wget https://raw.githubusercontent.com/jesusmah/stocktrader-resiliency/master/test/export.sh \
-        && wget https://raw.githubusercontent.com/jesusmah/stocktrader-resiliency/master/test/users.sh" && chmod 777 export.sh users.sh
+        && wget https://raw.githubusercontent.com/jesusmah/stocktrader-resiliency/master/test/users.sh && chmod 777 export.sh users.sh"
 ```
 
 Make sure the scripts have been successfully download:
@@ -230,7 +241,7 @@ $ kubectl exec `kubectl get pods | grep ibm-db2oltp-dev | awk '{print $1}'` -- b
 
 #### IBM MQ
 
-1. Install MQ using the [mq_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/mq_values.yaml) file:
+1. Install MQ using the [mq_values.yaml](installation/middleware/mq_values.yaml) file:
 
 ```
 $ helm install -n st-mq --namespace stocktrader --tls ibm-charts/ibm-mqadvanced-server-dev -f mq_values.yaml
@@ -299,37 +310,37 @@ That is, the NodePort for accessing our IBM MQ deployment from the outside is **
 
 - Access the IBM MQ web console pointing your browser to https://<proxy_ip>:<mq_nodeport>/ibmmq/console
 
-![mq-web-console](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency1.png)
+![mq-web-console](images/resiliency1.png)
 
 and using `admin` as the user and `passw0rd` as its password (Anyway, you could also find out what the password is by following the instructions the Helm install command for IBM MQ displayed).
 
 - Once you log into the IBM MQ web console, find out the **Queues on trader** widget/portlet and clieck on `Create` on the top right corner:
 
-![create-queue](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency2.png)
+![create-queue](images/resiliency2.png)
 
 - Enter **NotificationQ** on the dialog that pops up and click create:
 
-![queue-name](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency3.png)
+![queue-name](images/resiliency3.png)
 
 - On the Queues on trader widget/portlet again, click on the dashes icon and then on the **Manage authority records...** option within the dropdown menu:
 
-![authority](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency4.png)
+![authority](images/resiliency4.png)
 
 - On the new dialog that opens up, click on **Create** on the top right corner. This will also open up a new dialog to introduce the **Entity name**. Enter **app** as the Entity name and click on create
 
-![entity-name](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency5.png)
+![entity-name](images/resiliency5.png)
 
 - Back to the first dialog that opened up, verify the new app entity appears listed, click on it and select **Browse, Inquire, Get and Put** on the right bottom corner as the MQI permissions for the app entity and click on Save:
 
-![mqi-permissions](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency6.png)
+![mqi-permissions](images/resiliency6.png)
 
 
 #### Redis
 
-1. Install Redis using the [redis_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/redis_values.yaml) file:
+1. Install Redis using the [redis_values.yaml](installation/middleware/redis_values.yaml) file:
 
 ```
-$ $ helm install -n st-redis --namespace stocktrader --tls stable/redis -f redis_values.yaml
+$ helm install -n st-redis --namespace stocktrader --tls stable/redis -f redis_values.yaml
 NAME:   st-redis
 E0628 18:14:21.431010   11573 portforward.go:303] error copying from remote stream to local connection: readfrom tcp4 127.0.0.1:55225->127.0.0.1:55228: write tcp4 127.0.0.1:55225->127.0.0.1:55228: write: broken pipe
 LAST DEPLOYED: Thu Jun 28 18:14:19 2018
@@ -395,7 +406,7 @@ To connect to your database from outside the cluster execute the following comma
 
 #### IBM ODM
 
-1. Install IBM Operational Decision Manager (ODM) using the [odm_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/odm_values.yaml) file:
+1. Install IBM Operational Decision Manager (ODM) using the [odm_values.yaml](installation/middleware/odm_values.yaml) file:
 
 ```
 $ helm install -n st-odm --namespace stocktrader --tls ibm-charts/ibm-odm-dev -f odm_values.yaml
@@ -470,33 +481,33 @@ To learn more about the st-odm release, try:
 
 - Open the IBM Operational Decision Manager by pointing your browser to http://<proxy_ip>:<odm_nodeport> where the `<proxy_ip>` can be obtained as explained in the [IBM MQ installation](#ibm-mq) previous section above and the `<odm_nodeport>` can be obtained under the service section from the output of the Helm install command for IBM ODM above in this section. More precisely, we can see above that in our case `<odm_nodeport>` is **31101**.
 
-![odm](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency7.png)
+![odm](images/resiliency7.png)
 
 - Click on **Decision Center Business Console** and log into it using the credentials from the Helm install command output above (`odmAdmin/odmAdmin`).
 
 - Once you are logged in, click on the arrow on the left top corner to import a new project.
 
-![odm-import](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency8.png)
+![odm-import](images/resiliency8.png)
 
 - On the dialog that pops up, click on `Choose...` and select the **stock-trader-loyalty-decision-service.zip** file you downloaded above. Click on Import.
 
-![odm-choose](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency9.png)
+![odm-choose](images/resiliency9.png)
 
 - Once the stock-trader-loyalty-decision-service project is imported, you should be redirected into that project within the **Library section** of the Decision Center Business Console. You should see there an icon that says **main**. Click on it.
 
-![odm-library](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency10.png)
+![odm-library](images/resiliency10.png)
 
 - The above should have opened the **main** workflow of the stock-trader-loyalty-decision-service project. Now, click on **Deploy** at the top to actually deploy the stock-trader-loyalty-decision-service into the IBM Operational Decision server.
 
-![odm-deploy](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency11.png)
+![odm-deploy](images/resiliency11.png)
 
 - A new dialog will pop up with the **specifics** on how to deploy the main branch for the stock-trader-loyalty-decision-service. Leave it as it is and click on Deploy.
 
-![odm-deploy-specifics](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency12.png)
+![odm-deploy-specifics](images/resiliency12.png)
 
 - Finally, you should see a **Deployment status** dialog confirming that the deployment of the stock-trader-loyalty-decision-service project (actually called ICP-Trader-Dev-1) has started. Click OK to close the dialog.
 
-![odm-status](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency13.png)
+![odm-status](images/resiliency13.png)
 
 At this point we should have an instance of the IBM Operation Decision Manager deployed into out IBM Cloud Private (ICP) cluster, the stock-trader-loyalty-decision-service project (actually called ICP-Trader-Dev-1) imported into it and deployed to the Operation Decision server for the IBM StockTrader application to use it for calculating the loyalty of the portfolios.
 
@@ -521,13 +532,13 @@ The IBM StockTrader application can be deployed to IBM Cloud Private (ICP) using
 
 The IBM StockTrade Helm chart repository can be found at https://github.com/jesusmah/stocktrader-helm-repo/
 
-As we have done for the middleware pieces installed on the previous section, the IBM StockTrader application installation will be done by passing the desired values/configuration for some its components through a values file called [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml). This way the IBM StockTrader application Helm chart are the template/structure of the components that make up the application whereas the [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml) file allows us to tailor the application to our needs/configuration/environment.
+As we have done for the middleware pieces installed on the previous section, the IBM StockTrader application installation will be done by passing the desired values/configuration for some its components through a values file called [st_app_values_v2.yaml](installation/application/st_app_values_v2.yaml). This way the IBM StockTrader application Helm chart are the template/structure of the components that make up the application whereas the [st_app_values_v2.yaml](installation/application/st_app_values_v2.yaml) file allows us to tailor the application to our needs/configuration/environment.
 
 We suggest you **carefully review this file** in order to make sure the configuration for the middleware matches the installation of it done in previous steps.
 
-Also, there are some sections within this [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml) file that need to be completed as they depend on the specifics of the environment the IBM StockTrader application will be installed on as well as personal credentials.
+Also, there are some sections within this [st_app_values_v2.yaml](installation/application/st_app_values_v2.yaml) file that need to be completed as they depend on the specifics of the environment the IBM StockTrader application will be installed on as well as personal credentials.
 
-**IMPORTANT:** The values for the following parameters in the [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml) file **must be base64 encoded**. As a result, whatever the value you want to set the following parameters with, they first need to be encoded using the this command:
+**IMPORTANT:** The values for the following parameters in the [st_app_values_v2.yaml](installation/application/st_app_values_v2.yaml) file **must be base64 encoded**. As a result, whatever the value you want to set the following parameters with, they first need to be encoded using the this command:
 
 ```
 echo -n "<the_value_you_want_to_encode>" | base64
@@ -550,7 +561,7 @@ twitter:
   accessTokenSecret:
 ```
 
-which specifies the credentials for the IBM StockTrader to tweet notifications for loyalty changes to your Twitter account. In case you don't have a Twitter account or do not want to create one, The IBM StockTrader application **already comes configured with a default Twitter account** which is https://twitter.com/ibmstocktrader
+which specifies the credentials for the IBM StockTrader application to tweet portfolio loyalty level changes notifications to your Twitter account. In order to get the IBM StockTrader notification-twitter microservice to do so, you must have a [Twitter account](https://help.twitter.com/en/create-twitter-account) and register/create a [Twitter application](https://developer.twitter.com/en/docs/basics/getting-started) on it which is the one that will tweet on your behalf and the one that the IBM StockTrader application will talk to. In case you don't have a Twitter account or don't want to create one, The IBM StockTrader application **already comes configured with a default Twitter account** which is https://twitter.com/ibmstocktrader
 
 ```
 watson:
@@ -592,7 +603,7 @@ tradr:
 
 similar to `trader` above, this will force the **Tradr** microservice to always be accessible through the same NodePorts so that we can register those on the IBMid service for the SSO to work.
 
-Now that we are sure our [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml) file configuration for the middleware installed in the previous section looks good and have been completed with NodePorts, credentials, etc, **let's deploy the IBM StockTrader application!**
+Now that we are sure our [st_app_values_v2.yaml](installation/application/st_app_values_v2.yaml) file configuration for the middleware installed in the previous section looks good and have been completed with NodePorts, credentials, etc, **let's deploy the IBM StockTrader application!**
 
 1. Add the IBM StockTrader Helm repository:
 
@@ -606,7 +617,7 @@ st                      	https://raw.githubusercontent.com/jesusmah/stocktrader-
 ibm-charts              	https://raw.githubusercontent.com/IBM/charts/master/repo/stable/  
 ```
 
-2. Deploy the IBM StockTrader application using the [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml) file:
+2. Deploy the IBM StockTrader application using the [st_app_values_v2.yaml](installation/application/st_app_values_v2.yaml) file:
 
 ```
 $ helm install -n test --tls --namespace stocktrader -f st_app_values_v2.yaml stocktrader/stocktrader-app --version "0.2.0"
@@ -747,31 +758,31 @@ rs/test-tradr-548b58bc55                  1         1         1         10m
 
 3. Open the IBM StockTrader application by pointing your browser to `https://<proxy_ip>:<trader_microservice_nodeport>/trader/login` (check the [installation](#installation) section to find out how to obtain those values):
 
-![st-login](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency14.png)
+![st-login](images/resiliency14.png)
 
 **IMPORTANT:** Depending on what version of the **Trader** microservice (`basicregistry` or `latest`) you have deployed, the login screen will look differently. In the image above, we are showing the "simplest" path which is using the `basicregistry` version.
 
 4. Log into the IBM StockTrader application using User ID `stock` and Password `trader`:
 
-![st-app](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency15.png)
+![st-app](images/resiliency15.png)
 
 **IMPORTANT:** Again, based on the **Trader** microservice version you have deployed, you will use the aforementioned credentials or your IBMid credentials.
 
 5. Click on Create a new portfolio and submit in order to create a test portfolio. Introduce the name for the portfolio you like the most and click on submit:
 
-![st-create](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency16.png)
+![st-create](images/resiliency16.png)
 
 6. With your newly created portfolio selected, click on Update selected portfolio (add stock) and submit. Then, introduce `IBM` and `400` for the Stock Symbol and Number of Shares fields respectively and click submit:
 
-![st-add](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency17.png)
+![st-add](images/resiliency17.png)
 
 7. Your IBM StockTrader application should now have a portfolio with 400 IBM shares:
 
-![st-summary](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency18.png)
+![st-summary](images/resiliency18.png)
 
 9. Since we have added enough stock to advance our portfolio to a higher Loyalty Level (SILVER), we should have got a new tweet on our twitter account to notify us of such a change:
 
-![st-twitter](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency19.png)
+![st-twitter](images/resiliency19.png)
 
 ## Uninstallation
 
@@ -839,13 +850,13 @@ If you wanted to clean your entire `stocktrader` namespace, you would need to do
 In this section we provide plain shell scripts to
 
 1. Perform basic load test on the IBM StockTrader application to simulate common user interaction with the application by executing end-to-end scenarios trying to exercise all IBM StockTrader application components as much as possible.
-  - [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh)
-  - [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh)
-  - [threaded_main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_basic_registry.sh)
-  - [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_oidc.sh)
+  - [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh)
+  - [main_looper_oidc.sh](test/main_looper_oidc.sh)
+  - [threaded_main_looper_basic_registry.sh](test/threaded_main_looper_basic_registry.sh)
+  - [threaded_main_looper_oidc.sh](test/threaded_main_looper_oidc.sh)
 
 2. Simulate IBM Cloud Private (ICP) platform Kubernetes pod failures that compromises the IBM StockTrader application resiliency.
-  [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh)
+  [chaos.sh](test/chaos.sh)
 
 The IBM StockTrader's backend for frontend (BFF) microservice used to carry out the test is the **Trader** microservice. As already mentioned in this readme, the Trader microservice is served in two versions as far as authentication and authorisation of the requests is concerned. One uses plain user and password (`basicregistry`) and the other integrates with the IBMid service as the Identity Provider (IP) for the Open ID Connect (OIDC) mechanism (`latest`).
 
@@ -858,7 +869,7 @@ The IBM StockTrader load test scripts will interact with the IBM StockTrader app
 3. Delete existing portfolios from previous executions.
 4. For each iteration, it will for each portfolio
    1. Create the portfolio if it is iteration number 1.
-   2. Add the amount of shares specified for each of the symbols (IBM, APPLE and GOOGLE).
+   2. Add the amount of shares specified for each of the symbols (IBM, APPLE and GOOGLE) multiplied by a factor.
    3. Create a summary for the iteration into the `output` directory (`summary_iteration_#.html` or `summary_thread_#_iteration_#.html`).
 5. Create a final summary (`summary_final.html`) and export the database (`portfolio_final.txt` and `stock_final.txt`) reports into the `output` directory so that we can make sure the application has function as expected.
 
@@ -868,44 +879,48 @@ Finally, both the sequential and threaded versions have got their login section 
 
 As a result, we count with 4 load test scripts which we explain in further detail below.
 
+**IMPORTANT:** given the loyalty levels for the IBM StockTrader application you can check in the [loyalty level section](#loyalty-level) below in this this readme, use a **Multiplication factor for shares** of **2** in the following load test scripts if you want to exponentially increment the amount of shares to add to the portfolios per iteration and, as a result, reach higher levels of loyalty and better stress the messaging and notification pieces of the IBM StockTrader application architecture.
+
 #### main_looper_basic_registry.sh
 
-The [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh) will execute the workflow described in the [Load Test](#load-test) section above in a **sequential manner** with the **login section automated** using stock and trader as user and password when the **Trader** microservice version deployed is `basicregistry`.
+The [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh) will execute the workflow described in the [Load Test](#load-test) section above in a **sequential manner** with the **login section automated** using stock and trader as user and password when the **Trader** microservice version deployed is `basicregistry`.
 
-The [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh) script expects the following parameters:
+The [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh) script expects the following parameters:
 
 - $1: your `<proxy_ip>`.
 - $2: your `<trader_microservice_nodeport>`.
 - $3: Number of iterations.
 - $4: Number of portfolios.
 - $5: Number of shares to add of each symbol per portfolio and iteration.
+- $6: Multiplication factor for shares.
 
-Example: `sh main_looper_basic_registry.sh 172.16.40.176 32370 3 6 1`
+Example: `sh main_looper_basic_registry.sh 172.16.40.176 32370 3 6 1 1`
 
 #### main_looper_oidc.sh
 
-The [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh) script will do exactly the same as the previous `basicregistry` version but will not log into the application automatically. The reason for this is that we encountered some problems automating such task which did not make sense to invest more time investigating.
+The [main_looper_oidc.sh](test/main_looper_oidc.sh) script will do exactly the same as the previous `basicregistry` version but will not log into the application automatically. The reason for this is that we encountered some problems automating such task which did not make sense to invest more time investigating.
 
 As a result, the logging into the IBM StockTrader application `latest` version has to be done manually and the appropriate associated cookies exported in order to get the load testing scripts executed against. To export the appropriate cookies associated with the manual logging into the IBM StockTrader application, we have used Firefox to log into the IBM StockTrader application and the [cookies.txt Firefox add-on](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) for exporting the cookies.
 
-The [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh) script expects the following parameters:
+The [main_looper_oidc.sh](test/main_looper_oidc.sh) script expects the following parameters:
 
 - $1: your `<proxy_ip>`.
 - $2: your `<trader_microservice_nodeport>`.
 - $3: Number of iterations.
 - $4: Number of portfolios.
 - $5: Number of shares to add of each symbol per portfolio and iteration.
-- $6: IBM StockTrader authorisation and authorisation cookies file.
+- $6: Multiplication factor for shares.
+- $7: IBM StockTrader authorisation and authorisation cookies file.
 
-Example: `sh main_looper_oidc.sh 172.16.40.176 32370 3 6 1 cookies.txt`
+Example: `sh main_looper_oidc.sh 172.16.40.176 32370 3 6 1 1 cookies.txt`
 
 #### threaded_main_looper_basic_registry.sh and threaded_main_looper_oidc.sh
 
-The [threaded_main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_basic_registry.sh) and [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_oidc.sh) scripts will do work exactly the same as their non-threaded versions explained above but will execute the main stock adding workflow piece in parallel for a better request per second throughput.
+The [threaded_main_looper_basic_registry.sh](test/threaded_main_looper_basic_registry.sh) and [threaded_main_looper_oidc.sh](test/threaded_main_looper_oidc.sh) scripts will do work exactly the same as their non-threaded versions explained above but will execute the main stock adding workflow piece in parallel for a better request per second throughput.
 
-That is, from these scripts we will execute the [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/user_loop.sh) script in parallel as many times as threads has the main load test scripts been specified with:
+That is, from these scripts we will execute the [user_loop.sh](test/user_loop.sh) script in parallel as many times as threads has the main load test scripts been specified with:
 
-```
+```Shell
 for thread in $(seq $NUM_THREADS)
 do
   echo "[`date '+%H:%M:%S'`] [MAIN] - Executing user_loop.sh script for [THREAD_${thread}]"
@@ -913,7 +928,7 @@ do
 done
 ```
 
-where [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/user_loop.sh), will, in turn and in parallel, execute the adding stock code from the non-threaded script versions.
+where [user_loop.sh](test/user_loop.sh), will, in turn and in parallel, execute the adding stock code from the non-threaded script versions.
 
 The scripts expects the following parameters:
 
@@ -923,18 +938,19 @@ The scripts expects the following parameters:
 - $4: Number of iterations
 - $5: Number of users
 - $6: Number of shares to add of each symbol per portfolio and iteration
-- $7: IBM StockTrader authorisation and authorisation cookies file (`oidc` version only).
+- $7: Multiplication factor for shares.
+- $8: IBM StockTrader authorisation and authorisation cookies file (`oidc` version only).
 
-Example: `sh threaded_main_looper_basic_registry.sh 172.16.40.176 32370 2 3 6 1`
+Example: `sh threaded_main_looper_basic_registry.sh 172.16.40.176 32370 2 3 6 1 1`
 
-Example: `sh threaded_main_looper_oidc.sh 172.16.40.176 32370 2 3 6 1 cookies.txt` (`oidc` version)
+Example: `sh threaded_main_looper_oidc.sh 172.16.40.176 32370 2 3 6 1 1 cookies.txt` (`oidc` version)
 
 #### Execution
 
 Here we are going to demo the execution of the non-threaded `basicregistry` version of the load test scripts and what the output of it would be (the threaded version would create more users which would just generate higher requests per second):
 
 ```
-$ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20
+$ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20 1
 [2018-07-03 11:46:33]: Begin of script
 
 [11:46:33] [MAIN] - IBM Cloud Private (ICP) proxy IP: 172.16.40.176
@@ -943,6 +959,7 @@ $ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20
 [11:46:33] [MAIN] - Number of iterations: 4
 [11:46:33] [MAIN] - Number of users: 2
 [11:46:33] [MAIN] - Number of shares to add per iteration per symbol: 20
+[11:46:33] [MAIN] - Multiplication factor for shares: 1
 
 [2018-07-03 11:46:33]: Logging into the IBM StockTrader application using stock and trader...
 [2018-07-03 11:46:34]: Done
@@ -982,11 +999,11 @@ $ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20
 
 As we can read above, the load test script has created two users (portfolios) to which has added 20 shares per symbol (IBM, GOOGLE, ORACLE) each iteration (4 iterations) making IBM StockTrader to look like this
 
-![demo-main](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency20.png)
+![demo-main](images/resiliency20.png)
 
 and our twitter account to look like this after having those two portfolios progressed few loyalty levels up:
 
-![demo-twitter](https://github.com/jesusmah/stocktrader-resiliency/raw/master/images/resiliency21.png)
+![demo-twitter](images/resiliency21.png)
 
 As explained in the [Load Test](#load-test) section, the load test scripts also produce some more detailed test results into the `output` directory:
 
@@ -1027,13 +1044,42 @@ User_2                           AAPL              80   +1.87180000000000E+002  
   6 record(s) selected.
 ```
 
-### Chaos
+### Load Test Throughput
 
-This section covers the implementation of a Kubernetes pod failure test script. The script is actually called [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh) and it is a tailored piece of the work presented in this [GitHub repository by Eduardo Patrocinio](https://github.com/patrocinio/kubernetes-pod-chaos-monkey) to suit our needs.
+The following table describes the load test scripts maximum throughput when executed against the IBM StockTrader application:
 
-Given a namespace (default namespace is default), the IBM StockTrader application Helm release name and a delay (default 10 seconds), the [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh) script will then randomly choose a Running pod within that namespace which belongs to the specified IBM StockTrader application Helm release and terminate it:
+**Replica 1**
 
-```
+| | #Threads | #Iterations | #Users | #Requests | Duration (sec) | Throughput (req/sec) |
+| --- | --- | --- | --- | --- | --- | --- |
+| main_looper_basic_registry.sh | - | 10 | 4 | 135 | 241 | **0.56** |
+| threaded_main_looper_basic_registry.sh | 4 | 10 | 4 | 540 | 230 | **2.34** |
+| threaded_main_looper_basic_registry.sh | 6 | 10 | 4 | 810 | 471 | **1.71** |
+
+where all IBM StockTrader application microservices have 1 replica only.
+
+**Replica 3**
+
+| | #Threads | #Iterations | #Users | #Requests | Duration (sec) | Throughput (req/sec) |
+| --- | --- | --- | --- | --- | --- | --- |
+| main_looper_basic_registry.sh | - | 10 | 4 | 135 | 272 | **0.49** |
+| threaded_main_looper_basic_registry.sh | 4 | 10 | 4 | 540 | 231 | **2.33** |
+| threaded_main_looper_basic_registry.sh | 6 | 10 | 4 | 810 | 312 | **2.59** |
+
+where all IBM StockTrader application microservices are scaled up to 3 replicas (except from the Trader backend for frontend microservice which can not scale due to some WebSphere Liberty SSO credentials sharing limitation).
+
+The number of requests the load test scripts make to the IBM StockTrader application Trader backend for frontend microservice is calculated considering main loops only and leaving out preparation or summary requests. The equations look like this:
+
+main_looper_basic_registry.sh = #Users + ( #Iteration * #Users * #Symbols(=3) ) + #Iterations
+threaded_main_looper_basic_registry.sh = #Threads * ( #Users + ( #Iterations * #Users * #Symbols(=3) ) + #Iterations )
+
+### Monkey Chaos
+
+This section covers the implementation of a Kubernetes pod failure shell script. The script is actually called [chaos.sh](test/chaos.sh) and it is a tailored piece of the work presented in this [GitHub repository by Eduardo Patrocinio](https://github.com/patrocinio/kubernetes-pod-chaos-monkey) to suit our needs.
+
+Given a namespace (default namespace is default), the IBM StockTrader application Helm release name and a delay (default 10 seconds), the [chaos.sh](test/chaos.sh) script will then randomly choose a Running pod within that namespace which belongs to the specified IBM StockTrader application Helm release and terminate it:
+
+```Shell
 while true; do
   POD=`kubectl \
     --namespace "${NAMESPACE}" \
@@ -1074,7 +1120,53 @@ pod "test-notification-twitter-6dd5f9d7dc-5rmh4" deleted
 ^C
 ```
 
-As you can see, the [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh) script will run until a kill signal is sent to it (ctrl+c).
+As you can see, the [chaos.sh](test/chaos.sh) script will run until a kill signal is sent to it (ctrl+c).
+
+### Test Execution
+
+As already said in this readme, in order to test what we consider the easiest and therefore first step on testing cloud native microservices based applications on the IBM Cloud Private (ICP) platform (that is stateless microservices based applications), we are going to test the IBM StockTrader application resiliency.
+
+For doing so, we have [deployed the IBM StockTrader application](#installation) and developed [load test scripts](#load-test) for it and a [Kubernetes pod failure shell script](#monkey-chaos) for the IBM Cloud Private (ICP) platform.
+
+Then, we have scaled our stateless microservices to 3 replicas (except from the backend for frontend **Trader** microservice(1)) so that we create high availability, increase our application resiliency and minimise Kubernetes pod failures to break our application. There is no point in testing with only one replica as any pod failure will bring our application down.
+
+(1) The reason the backend for frontend (BFF) Trader microservice has not been scaled is due to a WebSphere Liberty SSO limitation which does not allow to share the SSO credentials/cookies amongst several WebSphere Liberty instances. Hence, requests will get redirected several times to the login mechanism. Since the Trader microservice `latest` version is not able to scale and therefore we are going to have only 1 replica of our backend for frontend (BFF), we have decided to run our tests with the `basicregistry` version instead as the load test scripts for such version automates the login into the IBM StockTrader application.
+
+This is how our testing environment looks like in terms of pods:
+
+```
+$ kubectl get pods
+NAME                                         READY     STATUS    RESTARTS   AGE
+st-db2-ibm-db2oltp-dev-0                     1/1       Running   0          6d
+st-mq-ibm-mq-0                               1/1       Running   0          6d
+st-odm-ibm-odm-dev-6699d55df5-fv9lv          1/1       Running   0          5d
+st-redis-master-0                            1/1       Running   0          5d
+st-redis-slave-5866f6f889-fkstr              1/1       Running   0          5d
+test-messaging-644ccbcd95-h9pxv              1/1       Running   0          16m
+test-messaging-644ccbcd95-mwkjh              1/1       Running   0          2d
+test-messaging-644ccbcd95-q58z4              1/1       Running   0          16m
+test-notification-twitter-6dd5f9d7dc-8d2ch   1/1       Running   0          16m
+test-notification-twitter-6dd5f9d7dc-d474c   1/1       Running   0          16m
+test-notification-twitter-6dd5f9d7dc-g47ql   1/1       Running   0          1d
+test-portfolio-75b4dbd485-8vjst              1/1       Running   0          16m
+test-portfolio-75b4dbd485-k9mxm              1/1       Running   0          1d
+test-portfolio-75b4dbd485-ppqd7              1/1       Running   0          16m
+test-stock-quote-7679899d76-8q5lc            1/1       Running   0          16m
+test-stock-quote-7679899d76-hwndr            1/1       Running   0          16m
+test-stock-quote-7679899d76-rgkwr            1/1       Running   0          2d
+test-trader-5446499c5b-98x2r                 1/1       Running   0          21m
+test-tradr-548b58bc55-kms2z                  1/1       Running   0          3h
+```
+
+that is,
+
+- 1 replica of our middleware pieces: `IBM DB2`, `IBM MQ`, `IBM ODM` and `Redis`
+- 1 replica of our backend for frontend: `trader` (`tradr` is not used even though it gets installed with the IBM StockTrader application Helm chart)
+- 3 replicas of the core IBM StockTrader application microservices: `Portfolio`, `Stock-quote`, `Messaging` and `Notificatio-Twitter`
+
+Now, the only thing that is left is to execute the load test scripts and the Kubernetes pod failure script at the same time over the IBM StockTrader application installation you can see above which we have on our IBM Cloud Private (ICP) instance hosted on our lab.
+
+The results of these executions can be found in the [test execution readme file](test_execution.md).
 
 ## Files
 
@@ -1082,32 +1174,32 @@ This section will describe each of the files presented in this repository. In he
 
 #### Installation - Middleware
 
-- [db2_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/db2_values.yaml): tailored IBM DB2 Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
-- [initialise_stocktrader_db_v2.sql](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v2.sql): initialises the IBM StockTrader version 2 database with the appropriate structure for the application to work properly.
-- [initialise_stocktrader_db_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v2.yaml): Kubernetes job that pulls [initialise_stocktrader_db_v2.sql](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v2.sql) to initialise the IBM StockTrader version 2 database.
-- [initialise_stocktrader_db_v1.sql](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v1.sql): initialises the IBM StockTrader version 1 database with the appropriate structure for the application to work properly.
-- [initialise_stocktrader_db_v1.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v1.yaml): Kubernetes job that pulls [initialise_stocktrader_db_v1.sql](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/initialise_stocktrader_db_v1.sql) to initialise the IBM StockTrader version 1 database.
-- [mq_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/mq_values.yaml): tailored IBM MQ Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
-- [redis_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/installation/middleware/master/redis_values.yaml): tailored Redis Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
-- [odm_values.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/middleware/odm_values.yaml): tailored IBM Operation Decision Manager (ODM) Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
+- [db2_values.yaml](installation/middleware/db2_values.yaml): tailored IBM DB2 Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
+- [initialise_stocktrader_db_v2.sql](installation/middleware/initialise_stocktrader_db_v2.sql): initialises the IBM StockTrader version 2 database with the appropriate structure for the application to work properly.
+- [initialise_stocktrader_db_v2.yaml](installation/middleware/initialise_stocktrader_db_v2.yaml): Kubernetes job that pulls [initialise_stocktrader_db_v2.sql](installation/middleware/initialise_stocktrader_db_v2.sql) to initialise the IBM StockTrader version 2 database.
+- [initialise_stocktrader_db_v1.sql](installation/middleware/initialise_stocktrader_db_v1.sql): initialises the IBM StockTrader version 1 database with the appropriate structure for the application to work properly.
+- [initialise_stocktrader_db_v1.yaml](installation/middleware/initialise_stocktrader_db_v1.yaml): Kubernetes job that pulls [initialise_stocktrader_db_v1.sql](installation/middleware/initialise_stocktrader_db_v1.sql) to initialise the IBM StockTrader version 1 database.
+- [mq_values.yaml](installation/middleware/mq_values.yaml): tailored IBM MQ Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
+- [redis_values.yaml](installation/middleware/master/redis_values.yaml): tailored Redis Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
+- [odm_values.yaml](installation/middleware/odm_values.yaml): tailored IBM Operation Decision Manager (ODM) Helm chart values file with the default values that the IBM StockTrader Helm chart expects.
 
 #### Installation - Application
 
-- [st_app_values_v1.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v1.yaml): Default IBM StockTrader version 1 Helm chart values file.
-- [st_app_values_v2.yaml](https://github.com/jesusmah/stocktrader-resiliency/blob/master/installation/application/st_app_values_v2.yaml): Default IBM StockTrader version 2 Helm chart values file.
+- [st_app_values_v1.yaml](installation/application/st_app_values_v1.yaml): Default IBM StockTrader version 1 Helm chart values file.
+- [st_app_values_v2.yaml](installation/application/st_app_values_v2.yaml): Default IBM StockTrader version 2 Helm chart values file.
 
 #### Test
 
-- [chaos.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/chaos.sh): Shell script that simulates Kubernetes pod failures.
-- [delete_all_tweets.py](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/delete_all_tweets.py): Python script to delete all tweets from a given twitter account.
-- [export.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/export.sh): Shell script to export the IBM StockTrader application database to a text file.
-- [main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_basic_registry.sh): Single-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
-- [main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/main_looper_oidc.sh): Single-threaded IBM StockTrader load test script to be used when `latest` Trader microservice version.
-- [threaded_main_looper_basic_registry.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_basic_registry.sh): Multi-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
-- [threaded_main_looper_oidc.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/threaded_main_looper_oidc.sh): Multi-threaded IBM StockTrader test script to be used when `latest` Trader microservice version.
-- [user_loop.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/user_loop.sh): Simulated user behavior load test script to be called by the multi-threaded IBM StockTrader test scripts to carry out the adding stock workflow piece.
-- [users.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/users.sh): Shell script to export the IBM StockTrader portfolios to a text file.
-- [get_logs.sh](https://github.com/jesusmah/stocktrader-resiliency/blob/master/test/get_logs.sh): Shell script to get all the logs from a Helm release since a period of time (if specified).
+- [chaos.sh](test/chaos.sh): Shell script that simulates Kubernetes pod failures.
+- [delete_all_tweets.py](test/delete_all_tweets.py): Python script to delete all tweets from a given twitter account.
+- [export.sh](test/export.sh): Shell script to export the IBM StockTrader application database to a text file.
+- [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh): Single-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
+- [main_looper_oidc.sh](test/main_looper_oidc.sh): Single-threaded IBM StockTrader load test script to be used when `latest` Trader microservice version.
+- [threaded_main_looper_basic_registry.sh](test/threaded_main_looper_basic_registry.sh): Multi-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
+- [threaded_main_looper_oidc.sh](test/threaded_main_looper_oidc.sh): Multi-threaded IBM StockTrader test script to be used when `latest` Trader microservice version.
+- [user_loop.sh](test/user_loop.sh): Simulated user behavior load test script to be called by the multi-threaded IBM StockTrader test scripts to carry out the adding stock workflow piece.
+- [users.sh](test/users.sh): Shell script to export the IBM StockTrader portfolios to a text file.
+- [get_logs.sh](test/get_logs.sh): Shell script to get all the logs from a Helm release since a period of time (if specified).
 
 ## Links
 

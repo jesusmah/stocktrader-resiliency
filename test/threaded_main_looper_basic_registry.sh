@@ -9,6 +9,7 @@ NUM_THREADS=$3
 NUM_ITERATIONS=$4
 NUM_USERS=$5
 NUMBER_OF_SHARES=$6
+MULT_FACTOR=${7:-1}
 
 ##################
 ## Cookies file ##
@@ -125,6 +126,7 @@ echo "[`date '+%H:%M:%S'`] [MAIN] - Number of threads: ${NUM_THREADS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of iterations: ${NUM_ITERATIONS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of users: ${NUM_USERS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of shares to add per iteration per symbol: ${NUMBER_OF_SHARES}"
+echo "[`date '+%H:%M:%S'`] [MAIN] - Multiplication factor for shares: ${MULT_FACTOR}"
 echo
 
 # Prepare output folder
@@ -146,7 +148,7 @@ delete_users
 for thread in $(seq $NUM_THREADS)
 do
   echo "[`date '+%H:%M:%S'`] [MAIN] - Executing user_loop.sh script for [THREAD_${thread}]"
-  sh user_loop.sh ${PROXY_IP} ${BFF_NODEPORT} ${thread} ${NUM_ITERATIONS} ${NUM_USERS} ${NUMBER_OF_SHARES} ${COOKIE_FILE} ${DIRECTORY} &
+  sh user_loop.sh ${PROXY_IP} ${BFF_NODEPORT} ${thread} ${NUM_ITERATIONS} ${NUM_USERS} ${NUMBER_OF_SHARES} ${MULT_FACTOR} ${COOKIE_FILE} ${DIRECTORY} &
 done
 
 # Wait for all threads to finish
