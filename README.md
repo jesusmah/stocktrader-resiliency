@@ -44,7 +44,9 @@ As a result, the IBM StockTrader application is a microservices application base
 
 The overall architecture looks like the following diagram:
 
-![st-arch](images/st-arch.png)
+<p align="center">
+<img alt="st-arch" src="images/st-arch.png"/>
+</p>
 
 Where you can find StockTrader specific microservices in blue and IBM middleware in purple all running on IBM Cloud Private (ICP), IBM Cloud Public services in green and other third party applications in other different colours.
 
@@ -316,24 +318,33 @@ and using `admin` as the user and `passw0rd` as its password (Anyway, you could 
 
 - Once you log into the IBM MQ web console, find out the **Queues on trader** widget/portlet and clieck on `Create` on the top right corner:
 
-![create-queue](images/resiliency2.png)
+<p align="center">
+<img alt="create-queue" src="images/resiliency2.png" width="600"/>
+</p>
 
 - Enter **NotificationQ** on the dialog that pops up and click create:
 
-![queue-name](images/resiliency3.png)
+<p align="center">
+<img alt="queue-name" src="images/resiliency3.png" width="600"/>
+</p>
 
 - On the Queues on trader widget/portlet again, click on the dashes icon and then on the **Manage authority records...** option within the dropdown menu:
 
-![authority](images/resiliency4.png)
+<p align="center">
+<img alt="authority" src="images/resiliency4.png" width="600"/>
+</p>
 
 - On the new dialog that opens up, click on **Create** on the top right corner. This will also open up a new dialog to introduce the **Entity name**. Enter **app** as the Entity name and click on create
 
-![entity-name](images/resiliency5.png)
+<p align="center">
+<img alt="entity-name" src="images/resiliency5.png" width="600"/>
+</p>
 
 - Back to the first dialog that opened up, verify the new app entity appears listed, click on it and select **Browse, Inquire, Get and Put** on the right bottom corner as the MQI permissions for the app entity and click on Save:
 
-![mqi-permissions](images/resiliency6.png)
-
+<p align="center">
+<img alt="mqi-permissions" src="images/resiliency6.png" width="600"/>
+</p>
 
 #### Redis
 
@@ -487,11 +498,15 @@ To learn more about the st-odm release, try:
 
 - Once you are logged in, click on the arrow on the left top corner to import a new project.
 
-![odm-import](images/resiliency8.png)
+<p align="center">
+<img alt="odm-import" src="images/resiliency8.png" width="600"/>
+</p>
 
 - On the dialog that pops up, click on `Choose...` and select the **stock-trader-loyalty-decision-service.zip** file you downloaded above. Click on Import.
 
-![odm-choose](images/resiliency9.png)
+<p align="center">
+<img alt="odm-choose" src="images/resiliency9.png" width="500"/>
+</p>
 
 - Once the stock-trader-loyalty-decision-service project is imported, you should be redirected into that project within the **Library section** of the Decision Center Business Console. You should see there an icon that says **main**. Click on it.
 
@@ -503,11 +518,15 @@ To learn more about the st-odm release, try:
 
 - A new dialog will pop up with the **specifics** on how to deploy the main branch for the stock-trader-loyalty-decision-service. Leave it as it is and click on Deploy.
 
-![odm-deploy-specifics](images/resiliency12.png)
+<p align="center">
+<img alt="odm-deploy-specifics" src="images/resiliency12.png" width="600"/>
+</p>
 
 - Finally, you should see a **Deployment status** dialog confirming that the deployment of the stock-trader-loyalty-decision-service project (actually called ICP-Trader-Dev-1) has started. Click OK to close the dialog.
 
-![odm-status](images/resiliency13.png)
+<p align="center">
+<img alt="odm-status" src="images/resiliency13.png" width="600"/>
+</p>
 
 At this point we should have an instance of the IBM Operation Decision Manager deployed into out IBM Cloud Private (ICP) cluster, the stock-trader-loyalty-decision-service project (actually called ICP-Trader-Dev-1) imported into it and deployed to the Operation Decision server for the IBM StockTrader application to use it for calculating the loyalty of the portfolios.
 
@@ -758,31 +777,43 @@ rs/test-tradr-548b58bc55                  1         1         1         10m
 
 3. Open the IBM StockTrader application by pointing your browser to `https://<proxy_ip>:<trader_microservice_nodeport>/trader/login` (check the [installation](#installation) section to find out how to obtain those values):
 
-![st-login](images/resiliency14.png)
+<p align="center">
+<img alt="st-login" src="images/resiliency14.png" width="500"/>
+</p>
 
 **IMPORTANT:** Depending on what version of the **Trader** microservice (`basicregistry` or `latest`) you have deployed, the login screen will look differently. In the image above, we are showing the "simplest" path which is using the `basicregistry` version.
 
 4. Log into the IBM StockTrader application using User ID `stock` and Password `trader`:
 
-![st-app](images/resiliency15.png)
+<p align="center">
+<img alt="st-app" src="images/resiliency15.png" width="500"/>
+</p>
 
 **IMPORTANT:** Again, based on the **Trader** microservice version you have deployed, you will use the aforementioned credentials or your IBMid credentials.
 
 5. Click on Create a new portfolio and submit in order to create a test portfolio. Introduce the name for the portfolio you like the most and click on submit:
 
-![st-create](images/resiliency16.png)
+<p align="center">
+<img alt="st-create" src="images/resiliency16.png" width="500"/>
+</p>
 
 6. With your newly created portfolio selected, click on Update selected portfolio (add stock) and submit. Then, introduce `IBM` and `400` for the Stock Symbol and Number of Shares fields respectively and click submit:
 
-![st-add](images/resiliency17.png)
+<p align="center">
+<img alt="st-add" src="images/resiliency17.png" width="500"/>
+</p>
 
 7. Your IBM StockTrader application should now have a portfolio with 400 IBM shares:
 
-![st-summary](images/resiliency18.png)
+<p align="center">
+<img alt="st-summary" src="images/resiliency18.png" width="500"/>
+</p>
 
-9. Since we have added enough stock to advance our portfolio to a higher Loyalty Level (SILVER), we should have got a new tweet on our twitter account to notify us of such a change:
+8. Since we have added enough stock to advance our portfolio to a higher Loyalty Level (SILVER), we should have got a new tweet on our twitter account to notify us of such a change:
 
-![st-twitter](images/resiliency19.png)
+<p align="center">
+<img alt="st-twitter" src="images/resiliency19.png" width="500"/>
+</p>
 
 ## Uninstallation
 
@@ -999,11 +1030,15 @@ $ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20 1
 
 As we can read above, the load test script has created two users (portfolios) to which has added 20 shares per symbol (IBM, GOOGLE, ORACLE) each iteration (4 iterations) making IBM StockTrader to look like this
 
-![demo-main](images/resiliency20.png)
+<p align="center">
+<img alt="demo-main" src="images/resiliency20.png" width="500"/>
+</p>
 
 and our twitter account to look like this after having those two portfolios progressed few loyalty levels up:
 
-![demo-twitter](images/resiliency21.png)
+<p align="center">
+<img alt="demo-twitter" src="images/resiliency21.png" width="500"/>
+</p>
 
 As explained in the [Load Test](#load-test) section, the load test scripts also produce some more detailed test results into the `output` directory:
 
