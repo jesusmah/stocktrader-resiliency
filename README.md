@@ -35,14 +35,14 @@ The work methodology we have chosen consists of using a representative applicati
 Different application resiliency on IBM Cloud Private scenarios could be any combination of the following application type and IBM Cloud Private (ICP) topology:
 
 1. Application:
-  1. Cloud native stateless microservices based application.
-  2. Cloud native stateful microservices based application.
-  3. Legacy stateless monolithic application.
-  4. Legacy stateful monolithic application.
+   1. Cloud native stateless microservices based application.
+   2. Cloud native stateful microservices based application.
+   3. Legacy stateless monolithic application.
+   4. Legacy stateful monolithic application.
 
 2. IBM Cloud Private (ICP) topology:
-  1. Simple ICP cluster on a datacenter.
-  2. Federated/Stretched ICP cluster.
+   1. Simple ICP cluster on a datacenter.
+   2. Federated/Stretched ICP cluster.
 
 **Does the above make sense?? Frame it otherwise.**
 
