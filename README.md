@@ -30,11 +30,25 @@ Namepsace: stocktrader
 
 The main goal of the work here presented in this GitHub repository is to explore new cloud native microservices based application resiliency on the IBM Cloud Private (ICP) platform. The desired outcome for this work would be a list of some recommendations and things to watch out as far as how to build resilient cloud native microservices based applications on the IBM Cloud Private (ICP) platform.
 
-The work methodology we have chosen consists of using a representative application for each of the different scenarios cloud native microservices based application resiliency extensive field might involve, execute some load test on it while simulating platform failures and observe the resiliency of the application while writing down not only its behaviour but the reasons behind it, what is wrong/failing, what can be enhanced, etc. It is important to note that we consider the middleware the application might use totally resilient and therefore taking it out of the equation by not simulating platform failures for them.
+The work methodology we have chosen consists of using a representative application for each of the different scenarios application resiliency on IBM Cloud Private (ICP)  extensive field might involve, execute some load test on it while simulating platform failures and observe the resiliency of the application while writing down not only its behaviour but the reasons behind it, what is wrong/failing, what can be enhanced, etc. It is important to note that **we consider the middleware the application might use totally resilient** and therefore taking it out of the equation by not simulating platform failures for them.
 
-In order to get us started, we have picked what we consider as the easiest scenario: a stateless microservices based application called the IBM StockTrader application.
+Different application resiliency on IBM Cloud Private scenarios could be any combination of the following application type and IBM Cloud Private (ICP) topology:
 
-Other scenarios blah blah blah LIST OTHER SCENARIOS FOR REFERENCE????
+1. Application:
+  1. Cloud native stateless microservices based application.
+  2. Cloud native stateful microservices based application.
+  3. Legacy stateless monolithic application.
+  4. Legacy stateful monolithic application.
+
+2. IBM Cloud Private (ICP) topology:
+  1. Simple ICP cluster on a datacenter.
+  2. Federated/Stretched ICP cluster.
+
+**Does the above make sense?? Frame it otherwise.**
+
+In order to get us started, we have picked what we consider as the easiest scenario: a stateless microservices based application on a simple IBM Cloud Private (ICP) cluster.
+
+The stateless microservices based application we are going to use for this first application resiliency on IBM Cloud Private (ICP) effort is called the [IBM StockTrader application](https://github.com/IBMStockTrader).
 
 ## IBM StockTrader application
 
