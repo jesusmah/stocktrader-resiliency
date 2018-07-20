@@ -126,7 +126,16 @@ Finally, most of the installation process will be carried out by using the IBM C
 ### Platform
 
 1. Create a namespace called **stocktrader**. If you don't know how to do so, follow this [link](https://www.ibm.com/support/knowledgecenter/en/SSBS6K_2.1.0.3/user_management/create_project.html).
-2. Give privileged permissions to your recently created namespace as some the IBM middleware need them to function:
+
+2. Change your kubernetes CLI context to work against your **stocktrader** namespace:
+
+```
+$ kubectl config set-context cluster.local-context --user=admin --namespace=stocktrader
+Context "cluster.local-context" modified.
+```
+_Use the appropriate user in the above command_
+
+3. Give privileged permissions to your recently created namespace as some the IBM middleware need them to function:
 
 ```
 $ kubectl create rolebinding -n stocktrader st-rolebinding --clusterrole=privileged  --serviceaccount=stocktrader:default
