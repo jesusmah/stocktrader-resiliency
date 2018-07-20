@@ -9,6 +9,7 @@ Namepsace: stocktrader
 1.  [Introduction](#introduction)
 2.  [IBM StockTrader application](#ibm-stocktrader-application)
 3.  [Installation](#installation)
+    - [Get The Code](#get-the-code)
     - [Platform](#platform)
     - [Middleware](#middleware)
       - [IBM DB2](#ibm-db2)
@@ -122,6 +123,22 @@ In this section, we will outline the steps needed in order to get the aforementi
 **IMPORTANT:** The below installation steps will create Kubernetes resources with names and configurations that the IBM StockTrader Helm chart will expect. Therefore, if any of these is changed, the IBM StockTrader Helm installation will need to be modified accordingly.
 
 Finally, most of the installation process will be carried out by using the IBM Cloud Private (ICP) CLI. Follow this [link](https://www.ibm.com/support/knowledgecenter/en/SSBS6K_2.1.0.3/manage_cluster/icp_cli.html) for the installation instructions.
+
+### Get The Code
+
+Before anything else, we need to **clone this Github repository** onto our workstations in order to be able to use the scripts, files and tools mentioned throughout this readme. To do so, clone this GitHub repository to a convinient location for you:
+
+```
+$ git clone https://github.com/jesusmah/stocktrader-resiliency.git
+Cloning into 'stocktrader-resiliency'...
+remote: Counting objects: 163, done.
+remote: Compressing objects: 100% (120/120), done.
+remote: Total 163 (delta 73), reused 116 (delta 38), pack-reused 0
+Receiving objects: 100% (163/163), 8.94 MiB | 1.06 MiB/s, done.
+Resolving deltas: 100% (73/73), done.
+```
+
+Afterwards, change directory to `stocktrader-resiliency`.
 
 ### Platform
 
