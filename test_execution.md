@@ -214,7 +214,7 @@ Deleted pods:
 
 More info on what pods [here](test/execution/test_2/chaos.txt).
 
-Execution time: 307 seconds
+Execution time: 340 seconds
 Total number of rest calls: 536
 
 ### Conclusion
