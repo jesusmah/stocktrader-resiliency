@@ -6,6 +6,8 @@ Files for each of the executions can be found in this repository under the [**te
 
 1.  [Test 1](#test-1)
 2.  [Test 2](#test-2)
+3.  [Test 3](#test-3)
+4.  [Main Conclusions](#main-conclusions)
 
 ## Test 1
 
@@ -234,3 +236,129 @@ Given the results above, we can conclude the following for Test 2:
 3. Not all the users got to the PLATINUM loyalty level as the result of the previous point (2). Expected loyalty level for each user: PLATINUM.
 4. Not all the loyalty level notifications were successfully tweeted as a result of previous point (3) and the notification-twitter microservice pod failures. Expected number of tweets per user: 4 (Total: 48).
 6. Application kept working regardless of pod failures as these got recreated automatically by Kubernetes.
+
+## Test 3
+
+This is the configuration we have run [threaded_main_looper_basic_registry.sh](test/threaded_main_looper_basic_registry.sh) and [chaos.sh](test/chaos.sh) scripts with:
+
+| Config | Value |
+| --- | --- |
+| IBM StockTrader installation | 172.16.50.173:32370 |
+| Backend for frontend (BFF) | Trader microservice |
+| Load test script | threaded_main_looper_basic_registry.sh |
+| Number of threads | 3 |
+| Number of iterations | 10 |
+| Number of users | 4 |
+| Number of shares | 1 |
+| Multiplication factor for shares | 2 |
+| Chaos test delay | 5 sec |
+
+### Results
+
+IBM StockTrader application:
+
+<p align="center">
+<img alt="test_3_app" src="test/execution/test_3/test_3_app.png" width="600"/>
+</p>
+
+Twitter account:
+
+<p align="center">
+<img alt="test_3_twitter" src="test/execution/test_3/test_3_twitter.png" width="600"/>
+</p>
+
+Portfolio table:
+
+```
+OWNER                            TOTAL                    LOYALTY  BALANCE                  COMMISSIONS              FREE        SENTIMENT       
+-------------------------------- ------------------------ -------- ------------------------ ------------------------ ----------- ----------------
+User_2_1                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_3_1                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_1_1                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_3_2                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_2_2                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_1_2                           +1.56548342500000E+006 PLATINUM   -1.92710000000000E+002   +2.42710000000000E+002           0 Unknown         
+User_3_3                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_2_3                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_1_3                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_2_4                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+User_3_4                           +1.56548342500000E+006 PLATINUM   -1.92710000000000E+002   +2.42710000000000E+002           0 Unknown         
+User_1_4                           +1.56606466500000E+006 PLATINUM   -2.02700000000000E+002   +2.52700000000000E+002           0 Unknown         
+
+  12 record(s) selected.
+
+```
+
+Stock table:
+
+```
+OWNER                            SYMBOL   SHARES      PRICE                    TOTAL                    DATEQUOTED COMMISSION              
+-------------------------------- -------- ----------- ------------------------ ------------------------ ---------- ------------------------
+User_2_1                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_3_1                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_1_1                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_2_1                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_3_1                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_2_1                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_3_1                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_1_1                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_1_1                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_3_2                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_2_2                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_1_2                         IBM             1019   +1.45310000000000E+002   +1.48070890000000E+005 07/23/2018   +7.59100000000000E+001
+User_3_2                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_2_2                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_1_2                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_3_2                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_2_2                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_1_2                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_3_3                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_2_3                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_1_3                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_2_3                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_3_3                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_2_3                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_1_3                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_3_3                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_1_3                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_2_4                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_3_4                         IBM             1019   +1.45310000000000E+002   +1.48070890000000E+005 07/23/2018   +7.59100000000000E+001
+User_1_4                         IBM             1023   +1.45310000000000E+002   +1.48652130000000E+005 07/23/2018   +8.59000000000000E+001
+User_2_4                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_3_4                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_1_4                         GOOG            1023   +1.19520500000000E+003   +1.22269471500000E+006 07/23/2018   +8.39000000000000E+001
+User_2_4                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_3_4                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+User_1_4                         AAPL            1023   +1.90340000000000E+002   +1.94717820000000E+005 07/23/2018   +8.29000000000000E+001
+
+  36 record(s) selected.
+```
+
+Deleted pods:
+
+| Name | Number of pods |
+| --- | --- |
+| Portfolio | 3 |
+| Stock-Quote | 11 |
+| Messaging | 8 |
+| Notification-twitter | 6 |
+| Total | **28** |
+
+More info on what pods [here](test/execution/test_2/chaos.txt).
+
+Execution time: 280 seconds
+Total number of rest calls: 536
+
+### Conclusion
+
+Given the results above, we can conclude the following for Test 3:
+
+1. **All the users were created** despite the portfolio microservice pod failures. Expected number of users: 12.
+2. Not all the update stock actions succeeded as the result of the portfolio microservice pod failures. Expected number of shares per symbol for each user: 1023.
+3. **All the users got to the PLATINUM loyalty level**. Expected loyalty level for each user: PLATINUM.
+4. Not all the loyalty level notifications were successfully tweeted as a result of the notification-twitter microservice pod failures. Expected number of tweets per user: 4 (Total: 48).
+6. Application kept working regardless of pod failures as these got recreated automatically by Kubernetes.
+
+## Main Conclusions
+
+As we could see in the tests executions and their results above, the application keeps running despite pod failures which means Kubernetes is doing its job by spinning up new pods to keep the replica number for each of the microservices as specified. We can also say, given results in [Test 3](#test-3) and the way the IBM StockTrader application works, that the less pod failures we have for the portfolio microservice the better the application will behave both as far as expected results and speed. The reason for this is obviously that the portfolio microservice is the most used microservice in the IBM StockTrader end-to-end test scenario. As a result, this test exercise might be useful to identify what pieces of your cloud native microservices based architectures need to be taken care of more carefully and perhaps scaled more times to reduce the chance of pod failure.
