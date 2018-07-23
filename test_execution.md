@@ -27,11 +27,15 @@ This is the configuration we have run [threaded_main_looper_basic_registry.sh](t
 
 IBM StockTrader application:
 
-![test_1_app](test/execution/test_1/test_1_app.png)
+<p align="center">
+<img alt="test_1_app" src="test/execution/test_1/test_1_app.png" width="600"/>
+</p>
 
 Twitter account:
 
-![test_1_twitter](test/execution/test_1/test_1_twitter.png)
+<p align="center">
+<img alt="test_1_twitter" src="test/execution/test_1/test_1_twitter.png" width="600"/>
+</p>
 
 Portfolio table:
 
@@ -133,11 +137,15 @@ This is the configuration we have run [threaded_main_looper_basic_registry.sh](t
 
 IBM StockTrader application:
 
-![test_2_app](test/execution/test_2/test_2_app.png)
+<p align="center">
+<img alt="test_2_app" src="test/execution/test_2/test_2_app.png" width="600"/>
+</p>
 
 Twitter account:
 
-![test_2_twitter](test/execution/test_2/test_2_twitter.png)
+<p align="center">
+<img alt="test_2_twitter" src="test/execution/test_2/test_2_twitter.png" width="600"/>
+</p>
 
 Portfolio table:
 
