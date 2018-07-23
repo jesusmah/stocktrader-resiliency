@@ -1024,13 +1024,13 @@ Here we are going to demo the execution of the non-threaded `basicregistry` vers
 $ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20 1
 [2018-07-03 11:46:33]: Begin of script
 
-[11:46:33] [MAIN] - IBM Cloud Private (ICP) proxy IP: 172.16.40.176
-[11:46:33] [MAIN] - IBM StockTrader BFF NodePort: 32370
+[11:46:33] IBM Cloud Private (ICP) proxy IP: 172.16.40.176
+[11:46:33] IBM StockTrader BFF NodePort: 32370
 
-[11:46:33] [MAIN] - Number of iterations: 4
-[11:46:33] [MAIN] - Number of users: 2
-[11:46:33] [MAIN] - Number of shares to add per iteration per symbol: 20
-[11:46:33] [MAIN] - Multiplication factor for shares: 1
+[11:46:33] Number of iterations: 4
+[11:46:33] Number of users: 2
+[11:46:33] Number of shares to add per iteration per symbol: 20
+[11:46:33] Multiplication factor for shares: 1
 
 [2018-07-03 11:46:33]: Logging into the IBM StockTrader application using stock and trader...
 [2018-07-03 11:46:34]: Done

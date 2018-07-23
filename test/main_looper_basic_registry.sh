@@ -166,13 +166,13 @@ delete_users()
 
 echo "[`date '+%Y-%m-%d %H:%M:%S'`]: Begin of script"
 echo
-echo "[`date '+%H:%M:%S'`] [MAIN] - IBM Cloud Private (ICP) proxy IP: ${PROXY_IP}"
-echo "[`date '+%H:%M:%S'`] [MAIN] - IBM StockTrader BFF NodePort: ${BFF_NODEPORT}"
+echo "[`date '+%H:%M:%S'`] IBM Cloud Private (ICP) proxy IP: ${PROXY_IP}"
+echo "[`date '+%H:%M:%S'`] IBM StockTrader BFF NodePort: ${BFF_NODEPORT}"
 echo
-echo "[`date '+%H:%M:%S'`] [MAIN] - Number of iterations: ${NUM_ITERATIONS}"
-echo "[`date '+%H:%M:%S'`] [MAIN] - Number of users: ${NUM_USERS}"
-echo "[`date '+%H:%M:%S'`] [MAIN] - Number of shares to add per iteration per symbol: ${NUMBER_OF_SHARES}"
-echo "[`date '+%H:%M:%S'`] [MAIN] - Multiplication factor for shares: ${MULT_FACTOR}"
+echo "[`date '+%H:%M:%S'`] Number of iterations: ${NUM_ITERATIONS}"
+echo "[`date '+%H:%M:%S'`] Number of users: ${NUM_USERS}"
+echo "[`date '+%H:%M:%S'`] Number of shares to add per iteration per symbol: ${NUMBER_OF_SHARES}"
+echo "[`date '+%H:%M:%S'`] Multiplication factor for shares: ${MULT_FACTOR}"
 echo
 
 # Prepare output folder
@@ -187,6 +187,10 @@ login
 
 # Deleting previous users
 delete_users
+
+# Kick off monkey chaos script
+echo "[`date '+%H:%M:%S'`]: Wait 10 seconds to allow Monkey Chaos injection"
+sleep 10
 
 # Iterations
 for iteration in $(seq $NUM_ITERATIONS)

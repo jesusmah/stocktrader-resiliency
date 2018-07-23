@@ -145,6 +145,11 @@ login
 # Deleting previous users
 delete_users
 
+# Kick off monkey chaos script
+echo "[`date '+%H:%M:%S'`] [MAIN] - Wait 10 seconds to allow Monkey Chaos injection"
+sleep 10
+
+# Loop
 for thread in $(seq $NUM_THREADS)
 do
   echo "[`date '+%H:%M:%S'`] [MAIN] - Executing user_loop.sh script for [THREAD_${thread}]"
