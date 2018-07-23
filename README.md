@@ -1,6 +1,6 @@
 # stocktrader-resiliency
 
-**LATEST ENV:** https://172.16.40.176:32370/trader/summary
+**LATEST ENV:** https://172.16.50.173:32370/trader/summary
 
 Namepsace: stocktrader
 
@@ -672,7 +672,7 @@ $ helm repo list
 NAME                    	URL                                                                                                      
 stable                  	https://kubernetes-charts.storage.googleapis.com                                                         
 local                   	http://127.0.0.1:8879/charts                                                                             
-st                      	https://raw.githubusercontent.com/jesusmah/stocktrader-helm-repo/master/docs/charts                      
+stocktrader                      	https://raw.githubusercontent.com/jesusmah/stocktrader-helm-repo/master/docs/charts                      
 ibm-charts              	https://raw.githubusercontent.com/IBM/charts/master/repo/stable/  
 ```
 
