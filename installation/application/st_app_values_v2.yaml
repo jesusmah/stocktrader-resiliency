@@ -63,17 +63,6 @@ secret:
     # token: https://idaas.iam.ibm.com/idaas/oidc/endpoint/default/token
     token: aHR0cHM6Ly9pZGFhcy5pYW0uaWJtLmNvbS9pZGFhcy9vaWRjL2VuZHBvaW50L2RlZmF1bHQvdG9rZW4=
 
-  openwhisk:
-    # Uses the default values for the IBM StockTrader application.
-    create: true
-    secret_name: stocktrader-openwhisk
-    # url: https://openwhisk.ng.bluemix.net/api/v1/namespaces/jalcorn%40us.ibm.com_dev/actions/PostLoyaltyLevelToSlack
-    url: aHR0cHM6Ly9vcGVud2hpc2submcuYmx1ZW1peC5uZXQvYXBpL3YxL25hbWVzcGFjZXMvamFsY29ybiU0MHVzLmlibS5jb21fZGV2L2FjdGlvbnMvUG9zdExveWFsdHlMZXZlbFRvU2xhY2s=
-    # id: bc2b0a37-0554-4658-9ebe-ae068eb1aa22
-    id: YmMyYjBhMzctMDU1NC00NjU4LTllYmUtYWUwNjhlYjFhYTIy
-    # pwd: 45t2FZC1q1bv6OYUztZUjkYFaVNs5klaviHoE6gFvgEedu9akiE1YW6lChOxUgJb
-    pwd: NDV0MkZaQzFxMWJ2Nk9ZVXp0WlVqa1lGYVZOczVrbGF2aUhvRTZnRnZnRWVkdTlha2lFMVlXNmxDaE94VWdKYg==
-
   redis:
     # Uses the default values specified in the redis_values.yaml file in the stocktrader-resiliency repository
     create: true
