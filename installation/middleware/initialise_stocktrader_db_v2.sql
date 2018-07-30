@@ -1,2 +1,0 @@
-CREATE TABLE Portfolio(owner VARCHAR(32) NOT NULL, total DOUBLE, loyalty VARCHAR(8), balance DOUBLE, commissions DOUBLE, free INTEGER, sentiment VARCHAR(16), PRIMARY KEY(owner))
-CREATE TABLE Stock(owner VARCHAR(32) NOT NULL, symbol VARCHAR(8) NOT NULL, shares INTEGER, price DOUBLE, total DOUBLE, dateQuoted DATE, commission DOUBLE, FOREIGN KEY (owner) REFERENCES Portfolio(owner) ON DELETE CASCADE, PRIMARY KEY(owner, symbol))
