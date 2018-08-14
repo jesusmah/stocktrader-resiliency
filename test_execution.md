@@ -512,10 +512,10 @@ IBM StockTrader application:
 <img alt="test_5_app" src="test/execution/test_5/test_5_app.png" width="600"/>
 </p>
 
-Slack channel account:
+Slack channel:
 
 <p align="center">
-<img alt="test_5_slack" src="test/execution/test_5/test_5_slack.png"/>
+<img alt="test_5_slack" src="test/execution/test_5/test_5_slack.png" width="700"/>
 </p>
 
 Portfolio table:
@@ -653,7 +653,7 @@ IBM StockTrader application:
 Slack channel:
 
 <p align="center">
-<img alt="test_6_slack" src="test/execution/test_6/test_6_slack.png"/>
+<img alt="test_6_slack" src="test/execution/test_6/test_6_slack.png" width="700"/>
 </p>
 
 Portfolio table:
@@ -791,7 +791,7 @@ IBM StockTrader application:
 Slack channel:
 
 <p align="center">
-<img alt="test_7_slack" src="test/execution/test_7/test_7_slack.png"/>
+<img alt="test_7_slack" src="test/execution/test_7/test_7_slack.png" width="700"/>
 </p>
 
 Portfolio table:
@@ -925,7 +925,7 @@ IBM StockTrader application:
 Slack channel:
 
 <p align="center">
-<img alt="test_8_slack" src="test/execution/test_8/test_8_slack.png"/>
+<img alt="test_8_slack" src="test/execution/test_8/test_8_slack.png" width="700"/>
 </p>
 
 Portfolio table:
