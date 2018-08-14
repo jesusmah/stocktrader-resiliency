@@ -3,13 +3,12 @@
 ################
 ## PARAMETERS ##
 ################
-PROXY_IP=$1
-BFF_NODEPORT=$2
-NUM_THREADS=$3
-NUM_ITERATIONS=$4
-NUM_USERS=$5
-NUMBER_OF_SHARES=$6
-MULT_FACTOR=${7:-1}
+INGRESS="stocktrader.ibm.com"
+NUM_THREADS=$1
+NUM_ITERATIONS=$2
+NUM_USERS=$3
+NUMBER_OF_SHARES=$4
+MULT_FACTOR=${5:-1}
 
 ##################
 ## Cookies file ##
@@ -41,9 +40,9 @@ DELETE_CODE=200
 login()
 {
   echo "[`date '+%H:%M:%S'`] [MAIN] - Logging into the IBM StockTrader application using ${ID} and ${PASSWORD}..."
-  RESPONSE=`curl -c ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/login" \
-                    -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
-                    -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/login" \
+  RESPONSE=`curl -c ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${INGRESS}/trader/login" \
+                    -H "Origin: https://${INGRESS}" \
+                    -H "Referer: https://${INGRESS}/trader/login" \
                     --data id=${ID}\&password=${PASSWORD}\&submit=Submit \
                     --compressed --insecure`
 
@@ -58,22 +57,23 @@ login()
 summary()
 {
   echo "[`date '+%H:%M:%S'`] [MAIN] - Getting the ${1} summary report..."
-  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/summary_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
-                      -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
-                      -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/summary_${1}.html -w '%{http_code}' -s "https://${INGRESS}/trader/summary" \
+                      -H "Origin: https://${INGRESS}" \
+                      -H "Referer: https://${INGRESS}/trader/summary" \
                       --compressed --insecure`
   if [ ${RESPONSE} -ne ${SUMMARY_CODE} ]; then
     echo "[`date '+%H:%M:%S'`] [MAIN] - An error occured getting the ${1} summary page"
-    exit 1
+    # Do not exit as the test would finish
+    # exit 1
   fi
   echo "[`date '+%H:%M:%S'`] [MAIN] - Done"
 }
 
 delete()
 {
-  RESPONSE=`curl -b ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
-                    -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
-                    -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${INGRESS}/trader/summary" \
+                    -H "Origin: https://${INGRESS}" \
+                    -H "Referer: https://${INGRESS}/trader/summary" \
                     --data action=delete\&owner=${USER}\&submit=Submit \
                     --compressed --insecure`
   if [ ${RESPONSE} -ne ${DELETE_CODE} ]; then
@@ -119,8 +119,7 @@ delete_users()
 
 echo "[`date '+%H:%M:%S'`] [MAIN] - Begin of script"
 echo
-echo "[`date '+%H:%M:%S'`] [MAIN] - IBM Cloud Private (ICP) proxy IP: ${PROXY_IP}"
-echo "[`date '+%H:%M:%S'`] [MAIN] - IBM StockTrader BFF NodePort: ${BFF_NODEPORT}"
+echo "[`date '+%H:%M:%S'`] [MAIN] - IBM StockTrader Ingress: ${INGRESS}"
 echo
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of threads: ${NUM_THREADS}"
 echo "[`date '+%H:%M:%S'`] [MAIN] - Number of iterations: ${NUM_ITERATIONS}"
@@ -152,8 +151,8 @@ sleep 10
 # Loop
 for thread in $(seq $NUM_THREADS)
 do
-  echo "[`date '+%H:%M:%S'`] [MAIN] - Executing user_loop.sh script for [THREAD_${thread}]"
-  sh user_loop.sh ${PROXY_IP} ${BFF_NODEPORT} ${thread} ${NUM_ITERATIONS} ${NUM_USERS} ${NUMBER_OF_SHARES} ${MULT_FACTOR} ${COOKIE_FILE} ${DIRECTORY} &
+  echo "[`date '+%H:%M:%S'`] [MAIN] - Executing trader_user_loop.sh script for [THREAD_${thread}]"
+  sh trader_user_loop.sh ${INGRESS} ${thread} ${NUM_ITERATIONS} ${NUM_USERS} ${NUMBER_OF_SHARES} ${MULT_FACTOR} ${COOKIE_FILE} ${DIRECTORY} &
 done
 
 # Wait for all threads to finish

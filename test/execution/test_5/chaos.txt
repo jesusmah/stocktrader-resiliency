@@ -1,0 +1,59 @@
+$ sh chaos.sh 5 stocktrader test                      
+[2018-08-13 16:44:30]: Begin of script
+
+Delay: 5
+Namespace: stocktrader
+Unique ID (Helm release): test
+
+Deleting Pod test-stock-quote-67cf64c6cb-7xltt...
+pod "test-stock-quote-67cf64c6cb-7xltt" deleted
+
+Deleting Pod test-notification-slack-869f48667-2l9d9...
+pod "test-notification-slack-869f48667-2l9d9" deleted
+
+Deleting Pod test-notification-slack-869f48667-b8ql7...
+pod "test-notification-slack-869f48667-b8ql7" deleted
+
+Deleting Pod test-notification-slack-869f48667-mk8d9...
+pod "test-notification-slack-869f48667-mk8d9" deleted
+
+Deleting Pod test-portfolio-5cdb8f98d-xb4lm...
+pod "test-portfolio-5cdb8f98d-xb4lm" deleted
+
+Deleting Pod test-notification-slack-869f48667-v7sql...
+pod "test-notification-slack-869f48667-v7sql" deleted
+
+Deleting Pod test-stock-quote-67cf64c6cb-l9hlh...
+pod "test-stock-quote-67cf64c6cb-l9hlh" deleted
+
+Deleting Pod test-notification-slack-869f48667-jjz9p...
+pod "test-notification-slack-869f48667-jjz9p" deleted
+
+Deleting Pod test-notification-slack-869f48667-7b5dv...
+pod "test-notification-slack-869f48667-7b5dv" deleted
+
+Deleting Pod test-notification-slack-869f48667-fjqhc...
+pod "test-notification-slack-869f48667-fjqhc" deleted
+
+Deleting Pod test-notification-slack-869f48667-k4mjz...
+pod "test-notification-slack-869f48667-k4mjz" deleted
+
+Deleting Pod test-stock-quote-67cf64c6cb-nr8tw...
+pod "test-stock-quote-67cf64c6cb-nr8tw" deleted
+
+Deleting Pod test-notification-slack-869f48667-7jqxr...
+pod "test-notification-slack-869f48667-7jqxr" deleted
+
+Deleting Pod test-messaging-c5c5854fc-rl97r...
+pod "test-messaging-c5c5854fc-rl97r" deleted
+
+Deleting Pod test-stock-quote-67cf64c6cb-vwfnj...
+pod "test-stock-quote-67cf64c6cb-vwfnj" deleted
+
+Deleting Pod test-stock-quote-67cf64c6cb-w9fm6...
+pod "test-stock-quote-67cf64c6cb-w9fm6" deleted
+
+Deleting Pod test-notification-slack-869f48667-lqx24...
+pod "test-notification-slack-869f48667-lqx24" deleted
+
+^C

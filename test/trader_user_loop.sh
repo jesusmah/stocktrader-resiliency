@@ -3,15 +3,14 @@
 ################
 ## PARAMETERS ##
 ################
-PROXY_IP=$1
-BFF_NODEPORT=$2
-THREAD=$3
-NUM_ITERATIONS=$4
-NUM_USERS=$5
-NUMBER_OF_SHARES=$6
-MULT_FACTOR=${7-1}
-COOKIE_FILE=$8
-DIRECTORY=$9
+INGRESS=$1
+THREAD=$2
+NUM_ITERATIONS=$3
+NUM_USERS=$4
+NUMBER_OF_SHARES=$5
+MULT_FACTOR=${6-1}
+COOKIE_FILE=$7
+DIRECTORY=$8
 
 ###################
 ## Share symbols ##
@@ -36,54 +35,58 @@ SUMMARY_CODE=200
 create()
 {
   echo "[`date '+%H:%M:%S'`] [${THREAD}] - Creating user ${USER}..."
-  RESPONSE=`curl -b ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/addPortfolio" \
-                    -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
-                    -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/addPortfolio" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${INGRESS}/trader/addPortfolio" \
+                    -H "Origin: https://${INGRESS}" \
+                    -H "Referer: https://${INGRESS}/trader/addPortfolio" \
                     --data owner=${USER}\&submit=Submit \
                     --compressed --insecure`
   if [ ${RESPONSE} -ne ${CREATE_CODE} ]; then
     echo "[`date '+%H:%M:%S'`] [${THREAD}] - An error occured creating the user ${USER}"
-    exit 1
+    # Do not exit as the test would finish
+    # exit 1
   fi
   echo "[`date '+%H:%M:%S'`] [${THREAD}] - Done"
 }
 
 update()
 {
-  RESPONSE=`curl -b ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/addStock?owner=${USER}" \
-                    -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
-                    -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/addStock?owner=${USER}" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o /dev/null -w '%{http_code}' -s "https://${INGRESS}/trader/addStock?owner=${USER}" \
+                    -H "Origin: https://${INGRESS}" \
+                    -H "Referer: https://${INGRESS}/trader/addStock?owner=${USER}" \
                     --data symbol=${SYMBOL}\&shares=${NUMBER_OF_SHARES}\&submit=Submit \
                     --compressed --insecure`
   echo "RESPONSE: ${RESPONSE} || Iteration ${iteration} - user ${USER} - symbol ${SYMBOL}" >> output/return_code.txt
   if [ ${RESPONSE} -ne ${UPDATE_CODE} ]; then
     echo "[`date '+%H:%M:%S'`] [${THREAD}] - An error occured adding ${NUMBER_OF_SHARES} ${SYMBOL} shares to ${USER} stock"
-    exit 1
+    # Do not exit as the test would finish
+    # exit 1
   fi
 }
 
 retrieve()
 {
-  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/retrieve_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/viewPortfolio?owner=${USER}" \
-                      -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
-                      -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/retrieve_${1}.html -w '%{http_code}' -s "https://${INGRESS}/trader/viewPortfolio?owner=${USER}" \
+                      -H "Origin: https://${INGRESS}" \
+                      -H "Referer: https://${INGRESS}/trader/summary" \
                       --compressed --insecure`
   if [ ${RESPONSE} -ne ${RETRIEVE_CODE} ]; then
     echo "[`date '+%H:%M:%S'`] [${THREAD}] - An error occured retrieving the info for user ${USER}"
-    exit 1
+    # Do not exit as the test would finish
+    # exit 1
   fi
 }
 
 summary()
 {
   echo "[`date '+%H:%M:%S'`] [${THREAD}] - Getting the ${1} summary report..."
-  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/summary_${1}.html -w '%{http_code}' -s "https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
-                      -H "Origin: https://${PROXY_IP}:${BFF_NODEPORT}" \
-                      -H "Referer: https://${PROXY_IP}:${BFF_NODEPORT}/trader/summary" \
+  RESPONSE=`curl -b ${COOKIE_FILE} -o ${DIRECTORY}/summary_${1}.html -w '%{http_code}' -s "https://${INGRESS}/trader/summary" \
+                      -H "Origin: https://${INGRESS}" \
+                      -H "Referer: https://${INGRESS}/trader/summary" \
                       --compressed --insecure`
   if [ ${RESPONSE} -ne ${SUMMARY_CODE} ]; then
     echo "[`date '+%H:%M:%S'`] [${THREAD}] - An error occured getting the ${1} summary page"
-    exit 1
+    # Do not exit as the test would finish
+    # exit 1
   fi
   echo "[`date '+%H:%M:%S'`] [${THREAD}] - Done"
 }

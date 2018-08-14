@@ -8,14 +8,15 @@ Namepsace: stocktrader
 
 1.  [Introduction](#introduction)
 2.  [IBM StockTrader Application](#ibm-stocktrader-application)
-3.  [Installation](#installation)
-4.  [Test](#test)
+    -  [Installation](#installation)
+    -  [Application flow](#application-flow)
+3.  [Test](#test)
     - [Load Test](#load-test)
     - [Load Test Throughput](#load-test-throughput)
     - [Monkey Chaos](#monkey-chaos)
     - [Test Execution](#test-execution)
-5.  [Files](#files)
-6.  [Links](#links)
+4.  [Files](#files)
+5.  [Links](#links)
 
 ## Introduction
 
@@ -39,13 +40,13 @@ Different application resiliency on IBM Cloud Private scenarios could be any com
 
 In order to get us started, we have picked what we consider as the easiest scenario: a stateless microservices based application on a simple IBM Cloud Private (ICP) cluster.
 
-The stateless microservices based application we are going to use for this first application resiliency on IBM Cloud Private (ICP) effort is called the [IBM StockTrader application](https://github.com/IBMStockTrader).
+The stateless microservices based application we are going to use for this first application resiliency on IBM Cloud Private (ICP) effort is called the [IBM StockTrader Application](https://github.com/IBMStockTrader).
 
 ## IBM StockTrader Application
 
-The IBM StockTrader application main goal is to showcase how IBM middleware can fit into the new hybrid cloud era where most of the uses cases will have a private cloud (on-premise resources) that needs to interact with services/resources on a public cloud (or more).
+The IBM StockTrader Application main goal is to showcase how IBM middleware can fit into the new hybrid cloud era where most of the uses cases will have a private cloud (on-premise resources) that needs to interact with services/resources on/from a public cloud provider (or more).
 
-As a result, the IBM StockTrader application is a microservices application based on Java MicroProfile which tries to leverage IBM middleware such as IBM MQ, IBM DB2 and IBM ODM in IBM Cloud Private (ICP) and integrate with IBM Cloud Public services and some notification applications like Slack and Twitter.
+As a result, the IBM StockTrader Application is mostly a Java MicroProfile based microservices application which tries to leverage containerised IBM middleware such as IBM MQ, IBM DB2 and IBM ODM running on IBM Cloud Private (ICP) and integrate with IBM Cloud Public services and some third party notification applications like Slack and Twitter.
 
 The overall architecture looks like the following diagram:
 
@@ -53,11 +54,19 @@ The overall architecture looks like the following diagram:
 <img alt="st-arch" src="images/st-arch.png"/>
 </p>
 
-Where you can find StockTrader specific microservices in blue and IBM middleware in purple all running on IBM Cloud Private (ICP), IBM Cloud Public services in green and other third party applications in other different colours.
+Where you can find IBM StockTrader specific microservices in blue and IBM middleware in purple all running on IBM Cloud Private (ICP), IBM Cloud Public services in green and other third party applications in other different colours.
+
+### Installation
+
+The actual IBM StockTrader Application GitHub repository where the instructions on how to get it installed (with the middleware, third party applications and other integrations it depends on) is located at https://github.com/jesusmah/stocktrader-app/tree/v2.
+
+Please, follow the instructions on the GitHub repository above to get the IBM StockTrader Application successfully installed and verified.
+
+As you could read in the IBM StockTrader installation instructions, there are two Backend For Frontend (BFF) microservices whereby to interact with the IBM StockTrader Application: **Trader** and **Tradr**. Although both integrate with the IBMid service for authentication and authorisation (using the Open ID Connect protocol - OIDC), **we have deployed the basicregistry version of the Trader BFF microservice** (also recommended in the installation instructions by the way) which allows us a simpler access to the IBM StockTrader Application to run our tests. Therefore, bear in mind for the following sections that we are accessing our IBM StockTrader Application instance through the Trader BFF microservice by using a simple user/password (`stock`/`trader`) credentials.
 
 ### Application flow
 
-There are mainly 4 actions you can execute against the IBM StockTrader application once you are logged in:
+There are mainly 4 actions you can execute against the IBM StockTrader Application once you are logged in:
 
 1. Create a portfolio, where
     1. A `GET addPortfolio` request is sent to the `trader microservice (BFF)` from the browser by the user which returns a form to be filled with the new portfolio name **(1)**.
@@ -84,8 +93,8 @@ There are mainly 4 actions you can execute against the IBM StockTrader applicati
         4. Now that a new total balance for the portfolio to be updated has been calculated, the `portfolio microservice` will process the loyalty level for this portfolio. This will make a `POST` request to the `IBM ODM` with the total balance for the portfolio. `IBM ODM` will return the associated loyalty level for such balance **(7)**.
         5. If the loyalty level has changed, the `portfolio microservice` will send a message to the `IBM MQ` with the portfolio name along with the old and new loyalty levels **(8)**.
     7. The `messaging microservice` will be listening to an specific queue on the `IBM MQ` for messages being dropped by the `portfolio microservice` **(9)**.
-    8. If a message, with a portfolio name and old and new loyalty levels, has been dropped into `IBM MQ` the `messaging microservice` will send a `POST` request to the `Notification (Twitter) microservice` (we are not using the Slack flow for now) **(10)**.
-    8. The `Notification (Twitter) microservice` will post a tweet with the portfolio name and the old and new loyalties to the twitter account configured for StockTrader **(11)**.
+    8. If a message (with a portfolio name and old and new loyalty levels) has been dropped into the `IBM MQ`, the `messaging microservice` will send a `POST` request to the notification-service which will end up reaching the `Notification (Twitter) or Notification (Slack) microservice` depending on which notification route we had selected at installation time **(10)**.
+    9. Based on that notification route option chosen at the installation time, either the `Notification (Twitter) microservice` will post a tweet to the configured Twitter account or the `Notification (Slack) microservice` will post a message to the configured Slack channel with the portfolio name and the old and new loyalties **(11)**.
 4. Retrieve a portfolio.
     1. A `POST summary` request is sent to the `trader microservice (BFF)` from the browser by the user  with the action `retrieve` and owner `portfolio name` as parameters **(1)**.
     2. `trader microservice (BFF)` sends a `GET viewPortfolio` request to the `portfolio microservice` with the portfolio name **(2)**.
@@ -94,7 +103,7 @@ There are mainly 4 actions you can execute against the IBM StockTrader applicati
 
 #### Loyalty Levels
 
-The loyalty levels for the IBM StockTrader application are set as follows:
+The loyalty levels for the IBM StockTrader Application are set as follows:
 
 | Loyalty Level | Stock |
 | --- | --- |
@@ -104,33 +113,28 @@ The loyalty levels for the IBM StockTrader application are set as follows:
 | GOLD | 100.001 - 1.000.000 |
 | PLATINUM | > 1.000.001 |
 
-## Installation
-
-The actual IBM StockTrader Application GitHub repository where the instructions on how to get it installed (with the middleware, third party applications and other integrations it depends on) is located at https://github.com/jesusmah/stocktrader-app/tree/v2.
-
-Please, follow the instructions on the GitHub repository above to get the IBM StockTrader Application successfully installed and verified.
-
 ## Test
 
 In this section we provide plain shell scripts to
 
-1. Perform basic load test on the IBM StockTrader application to simulate common user interaction with the application by executing end-to-end scenarios trying to exercise all IBM StockTrader application components as much as possible.
-  - [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh)
-  - [main_looper_oidc.sh](test/main_looper_oidc.sh)
-  - [threaded_main_looper_basic_registry.sh](test/threaded_main_looper_basic_registry.sh)
-  - [threaded_main_looper_oidc.sh](test/threaded_main_looper_oidc.sh)
+1. Perform basic load test on the IBM StockTrader Application through its **basicregistry Trader BFF microservice** by simulating common user interaction with the application. This load test executes end-to-end scenarios trying to exercise all IBM StockTrader Application components as much as possible.
 
-2. Simulate IBM Cloud Private (ICP) platform Kubernetes pod failures that compromises the IBM StockTrader application resiliency.
+  - [trader_main_looper_basic_registry.sh](test/trader_main_looper_basic_registry.sh)
+  - [trader_main_looper_oidc.sh](test/trader_main_looper_oidc.sh)
+  - [trader_threaded_main_looper_basic_registry.sh](test/trader_threaded_main_looper_basic_registry.sh)
+  - [trader_threaded_main_looper_oidc.sh](test/trader_threaded_main_looper_oidc.sh)
+
+2. Simulate IBM Cloud Private (ICP) platform Kubernetes pod failures that compromises the IBM StockTrader Application resiliency.
   [chaos.sh](test/chaos.sh)
 
-The IBM StockTrader's backend for frontend (BFF) microservice used to carry out the test is the **Trader** microservice. As already mentioned in this readme, the Trader microservice is served in two versions as far as authentication and authorisation of the requests is concerned. One uses plain user and password (`basicregistry`) and the other integrates with the IBMid service as the Identity Provider (IP) for the Open ID Connect (OIDC) mechanism (`latest`).
+Again, the IBM StockTrader's backend for frontend (BFF) microservice used to carry out the test is the **Trader** microservice. As already mentioned in this readme, the Trader microservice is served in two versions as far as the authentication and authorisation of the requests is concerned. One uses plain user and password (`basicregistry`) and the other integrates with the IBMid service as the Identity Provider (IP) for the Open ID Connect (OIDC) mechanism (`latest`).
 
 ### Load Test
 
-The IBM StockTrader load test scripts will interact with the IBM StockTrader application through **REST calls** against the **Trader** backend for frontend (BFF) microservice. The load test scripts' workflow looks like:
+The IBM StockTrader load test scripts will interact with the IBM StockTrader Application through **REST calls** against the **Trader** backend for frontend (BFF) microservice. The load test scripts workflow looks like:
 
 1. Remove the output from previous executions (`output` directory).
-2. Log into the StockTrader application (only on the `basic_registry` shell scripts).
+2. Log into the StockTrader Application (only on the `_basic_registry` shell scripts).
 3. Delete existing portfolios from previous executions.
 4. For each iteration, it will for each portfolio
    1. Create the portfolio if it is iteration number 1.
@@ -144,71 +148,67 @@ Finally, both the sequential and threaded versions have got their login section 
 
 As a result, we count with 4 load test scripts which we explain in further detail below.
 
-**IMPORTANT:** given the loyalty levels for the IBM StockTrader application you can check in the [loyalty level section](#loyalty-level) below in this this readme, use a **Multiplication factor for shares** of **2** in the following load test scripts if you want to exponentially increment the amount of shares to add to the portfolios per iteration and, as a result, reach higher levels of loyalty and better stress the messaging and notification pieces of the IBM StockTrader application architecture.
+**IMPORTANT:** given the [loyalty levels](#loyalty-level) for the IBM StockTrader Application detailed above in this this readme, use a **Multiplication factor for shares** of **2** in the following load test scripts if you want to exponentially increment the amount of shares to add to the portfolios per iteration and, as a result, reach higher levels of loyalty and better stress the messaging and notification pieces of the IBM StockTrader Application architecture.
 
-#### main_looper_basic_registry.sh
+**IMPORTANT:** The load test scripts below are developed to meet the [IBM StockTrader Application installation](https://github.com/jesusmah/stocktrader-app/tree/v2#installation) explained in its GitHub repository. Therefore, make sure you have the correct configuration of your hosts file beforehand.
 
-The [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh) will execute the workflow described in the [Load Test](#load-test) section above in a **sequential manner** with the **login section automated** using stock and trader as user and password when the **Trader** microservice version deployed is `basicregistry`.
+#### trader_main_looper_basic_registry.sh
 
-The [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh) script expects the following parameters:
+The [trader_main_looper_basic_registry.sh](test/trader_main_looper_basic_registry.sh) will execute the workflow described in the [Load Test](#load-test) section above in a **sequential manner** with the **login section automated** using stock and trader as user and password when the **Trader** microservice version deployed is `basicregistry`.
 
-- $1: your `<proxy_ip>`.
-- $2: your `<trader_microservice_nodeport>`.
-- $3: Number of iterations.
-- $4: Number of portfolios.
-- $5: Number of shares to add of each symbol per portfolio and iteration.
-- $6: Multiplication factor for shares.
+The [trader_main_looper_basic_registry.sh](test/trader_main_looper_basic_registry.sh) script expects the following parameters:
 
-Example: `sh main_looper_basic_registry.sh 172.16.40.176 32370 3 6 1 1`
+- $1: Number of iterations.
+- $2: Number of portfolios.
+- $3: Number of shares to add of each symbol per portfolio and iteration.
+- $4: Multiplication factor for shares.
 
-#### main_looper_oidc.sh
+Example: `sh trader_main_looper_basic_registry.sh 3 6 1 1`
 
-The [main_looper_oidc.sh](test/main_looper_oidc.sh) script will do exactly the same as the previous `basicregistry` version but will not log into the application automatically. The reason for this is that we encountered some problems automating such task which did not make sense to invest more time investigating.
+#### trader_main_looper_oidc.sh
 
-As a result, the logging into the IBM StockTrader application `latest` version has to be done manually and the appropriate associated cookies exported in order to get the load testing scripts executed against. To export the appropriate cookies associated with the manual logging into the IBM StockTrader application, we have used Firefox to log into the IBM StockTrader application and the [cookies.txt Firefox add-on](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) for exporting the cookies.
+The [trader_main_looper_oidc.sh](test/trader_main_looper_oidc.sh) script will do exactly the same as the previous `basicregistry` version but will not log into the application automatically. The reason for this is that we encountered some problems automating such task which did not make sense to invest more time investigating.
 
-The [main_looper_oidc.sh](test/main_looper_oidc.sh) script expects the following parameters:
+As a result, the logging into the IBM StockTrader Application `latest` version has to be done manually and the appropriate associated cookies exported in order to get this load test OIDC version script executed. To export the appropriate cookies associated with the manual logging into the IBM StockTrader Application, we have used Firefox to log into the IBM StockTrader Application and the [cookies.txt Firefox add-on](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) for exporting the cookies.
 
-- $1: your `<proxy_ip>`.
-- $2: your `<trader_microservice_nodeport>`.
-- $3: Number of iterations.
-- $4: Number of portfolios.
-- $5: Number of shares to add of each symbol per portfolio and iteration.
-- $6: Multiplication factor for shares.
-- $7: IBM StockTrader authorisation and authorisation cookies file.
+The [trader_main_looper_oidc.sh](test/trader_main_looper_oidc.sh) script expects the following parameters:
 
-Example: `sh main_looper_oidc.sh 172.16.40.176 32370 3 6 1 1 cookies.txt`
+- $1: Number of iterations.
+- $2: Number of portfolios.
+- $3: Number of shares to add of each symbol per portfolio and iteration.
+- $4: Multiplication factor for shares.
+- $5: IBM StockTrader authorisation and authorisation cookies file.
 
-#### threaded_main_looper_basic_registry.sh and threaded_main_looper_oidc.sh
+Example: `sh trader_main_looper_oidc.sh 3 6 1 1 cookies.txt`
 
-The [threaded_main_looper_basic_registry.sh](test/threaded_main_looper_basic_registry.sh) and [threaded_main_looper_oidc.sh](test/threaded_main_looper_oidc.sh) scripts will do work exactly the same as their non-threaded versions explained above but will execute the main stock adding workflow piece in parallel for a better request per second throughput.
+#### trader_threaded_main_looper_basic_registry.sh and trader_threaded_main_looper_oidc.sh
 
-That is, from these scripts we will execute the [user_loop.sh](test/user_loop.sh) script in parallel as many times as threads has the main load test scripts been specified with:
+The [trader_threaded_main_looper_basic_registry.sh](test/trader_threaded_main_looper_basic_registry.sh) and [trader_threaded_main_looper_oidc.sh](test/trader_threaded_main_looper_oidc.sh) scripts will work exactly the same as their non-threaded versions explained above but will execute the main stock adding workflow piece in parallel for a better request per second throughput.
+
+That is, from these scripts we will execute the [trader_user_loop.sh](test/trader_user_loop.sh) script in parallel as many times as threads has the main load test scripts been specified with:
 
 ```Shell
 for thread in $(seq $NUM_THREADS)
 do
-  echo "[`date '+%H:%M:%S'`] [MAIN] - Executing user_loop.sh script for [THREAD_${thread}]"
-  sh user_loop.sh ${PROXY_IP} ${BFF_NODEPORT} ${thread} ${NUM_ITERATIONS} ${NUM_USERS} ${NUMBER_OF_SHARES} ${COOKIE_FILE} ${DIRECTORY} &
+  echo "[`date '+%H:%M:%S'`] [MAIN] - Executing trader_user_loop.sh script for [THREAD_${thread}]"
+  sh trader_user_loop.sh ${INGRESS} ${thread} ${NUM_ITERATIONS} ${NUM_USERS} ${NUMBER_OF_SHARES} ${COOKIE_FILE} ${DIRECTORY} &
 done
 ```
 
-where [user_loop.sh](test/user_loop.sh), will, in turn and in parallel, execute the adding stock code from the non-threaded script versions.
+where [trader_user_loop.sh](test/trader_user_loop.sh), will, in turn and in parallel, execute the adding stock code from the non-threaded script versions.
 
-The scripts expects the following parameters:
+The [trader_threaded_main_looper_basic_registry.sh](test/trader_threaded_main_looper_basic_registry.sh) and [trader_threaded_main_looper_oidc.sh](test/trader_threaded_main_looper_oidc.sh) scripts expects the following parameters:
 
-- $1: your `<proxy_ip>`.
-- $2: your `<trader_microservice_nodeport>`.
-- $3: Number of threads
-- $4: Number of iterations
-- $5: Number of users
-- $6: Number of shares to add of each symbol per portfolio and iteration
-- $7: Multiplication factor for shares.
-- $8: IBM StockTrader authorisation and authorisation cookies file (`oidc` version only).
+- $1: Number of threads
+- $2: Number of iterations
+- $3: Number of users
+- $4: Number of shares to add of each symbol per portfolio and iteration
+- $5: Multiplication factor for shares.
+- $6: IBM StockTrader authorisation and authorisation cookies file (`oidc` version only).
 
-Example: `sh threaded_main_looper_basic_registry.sh 172.16.40.176 32370 2 3 6 1 1`
+Example: `sh trader_threaded_main_looper_basic_registry.sh 2 3 6 1 1`
 
-Example: `sh threaded_main_looper_oidc.sh 172.16.40.176 32370 2 3 6 1 1 cookies.txt` (`oidc` version)
+Example: `sh trader_threaded_main_looper_oidc.sh 2 3 6 1 1 cookies.txt` (`oidc` version)
 
 #### Execution
 
@@ -218,15 +218,14 @@ Here we are going to demo the execution of the non-threaded `basicregistry` vers
 $ sh main_looper_basic_registry.sh 172.16.40.176 32370 4 2 20 1
 [2018-07-03 11:46:33]: Begin of script
 
-[11:46:33] IBM Cloud Private (ICP) proxy IP: 172.16.40.176
-[11:46:33] IBM StockTrader BFF NodePort: 32370
+[11:46:33] IBM StockTrader Ingress: stocktrader.ibm.com
 
 [11:46:33] Number of iterations: 4
 [11:46:33] Number of users: 2
 [11:46:33] Number of shares to add per iteration per symbol: 20
 [11:46:33] Multiplication factor for shares: 1
 
-[2018-07-03 11:46:33]: Logging into the IBM StockTrader application using stock and trader...
+[2018-07-03 11:46:33]: Logging into the IBM StockTrader Application using stock and trader...
 [2018-07-03 11:46:34]: Done
 
 [2018-07-03 11:46:34]: Deleting all previous users...
@@ -286,7 +285,7 @@ summary_iteration_2.html
 summary_iteration_3.html
 summary_iteration_4.html
 ```
-where the `summary html` files would be a graphical snapshot of who the IBM StockTrader application looks like after each iteration and at the end of the load test script execution and `portfolio.txt` and `stock_final.txt` an IBM StockTrader application database dump at the end of the load test script execution:
+where the `summary html` files would be a graphical snapshot of who the IBM StockTrader Application looks like after each iteration and at the end of the load test script execution and `portfolio.txt` and `stock_final.txt` an IBM StockTrader Application database dump at the end of the load test script execution:
 
 ```
 $ cat portfolio_final.txt
@@ -315,40 +314,38 @@ User_2                           AAPL              80   +1.87180000000000E+002  
 
 ### Load Test Throughput
 
-The following table describes the load test scripts maximum throughput when executed against the IBM StockTrader application:
+The load test throughput may vary depending on your ICP cluster configuration, overhead, network connection, etc. However, here is the load test throughput at the time this was carried out.
 
-**Replica 1**
+The number of requests the load test scripts make to the IBM StockTrader Application Trader Backend For Frontend (BFF) microservice is calculated considering main loops only and leaving out preparation or summary requests. The equations look like this:
 
-| | #Threads | #Iterations | #Users | #Requests | Duration (sec) | Throughput (req/sec) |
-| --- | --- | --- | --- | --- | --- | --- |
-| main_looper_basic_registry.sh | - | 10 | 4 | 135 | 241 | **0.56** |
-| threaded_main_looper_basic_registry.sh | 4 | 10 | 4 | 540 | 230 | **2.34** |
-| threaded_main_looper_basic_registry.sh | 6 | 10 | 4 | 810 | 471 | **1.71** |
+```
+trader_main_looper_basic_registry.sh = #Users + ( #Iteration * #Users * #Symbols(=3) ) + #Iterations
+trader_threaded_main_looper_basic_registry.sh = #Threads * ( #Users + ( #Iterations * #Users * #Symbols(=3) ) + #Iterations )
+```
 
-where all IBM StockTrader application microservices have 1 replica only.
+The following table describes the load test scripts maximum throughput when the load test scripts were executed against the IBM StockTrader Application with the Twitter notification route enabled on a cluster with IBM Cloud Private 2.1.0.2:
 
 **Replica 3**
 
-| | #Threads | #Iterations | #Users | #Requests | Duration (sec) | Throughput (req/sec) |
+| | #Threads | #Iterations | #Users | #Requests | Avg. Duration (sec) | Throughput (req/sec) |
 | --- | --- | --- | --- | --- | --- | --- |
-| main_looper_basic_registry.sh | - | 10 | 4 | 135 | 272 | **0.49** |
-| threaded_main_looper_basic_registry.sh | 4 | 10 | 4 | 540 | 231 | **2.33** |
-| threaded_main_looper_basic_registry.sh | 6 | 10 | 4 | 810 | 312 | **2.59** |
+| trader_threaded_main_looper_basic_registry.sh | 3 | 10 | 4 | 402 | 313 | **1.28** |
 
-where all IBM StockTrader application microservices are scaled up to 3 replicas (except from the Trader backend for frontend microservice which can not scale due to some WebSphere Liberty SSO credentials sharing limitation).
+The following table describes the load test scripts maximum throughput when the load test scripts were executed against the IBM StockTrader Application with the Slack notification route enabled on a cluster with IBM Cloud Private 2.1.0.3:
 
-The number of requests the load test scripts make to the IBM StockTrader application Trader backend for frontend microservice is calculated considering main loops only and leaving out preparation or summary requests. The equations look like this:
+**Replica 3**
 
-```
-main_looper_basic_registry.sh = #Users + ( #Iteration * #Users * #Symbols(=3) ) + #Iterations
-threaded_main_looper_basic_registry.sh = #Threads * ( #Users + ( #Iterations * #Users * #Symbols(=3) ) + #Iterations )
-```
+| | #Threads | #Iterations | #Users | #Requests | Avg. Duration (sec) | Throughput (req/sec) |
+| --- | --- | --- | --- | --- | --- | --- |
+| trader_threaded_main_looper_basic_registry.sh | 4 | 10 | 4 | 536 | 225 | **2.38** |
+
+where all IBM StockTrader Application microservices are scaled up to 3 replicas (except from the Trader backend for frontend microservice which can not scale due to some WebSphere Liberty SSO credentials sharing limitation).
 
 ### Monkey Chaos
 
 This section covers the implementation of a Kubernetes pod failure shell script. The script is actually called [chaos.sh](test/chaos.sh) and it is a tailored piece of the work presented in this [GitHub repository by Eduardo Patrocinio](https://github.com/patrocinio/kubernetes-pod-chaos-monkey) to suit our needs.
 
-Given a namespace (default namespace is default), the IBM StockTrader application Helm release name and a delay (default 10 seconds), the [chaos.sh](test/chaos.sh) script will then randomly choose a Running pod within that namespace which belongs to the specified IBM StockTrader application Helm release and terminate it:
+Given a namespace (default namespace is default), the IBM StockTrader Application Helm release name and a delay (default 10 seconds), the [chaos.sh](test/chaos.sh) script will then randomly choose a Running pod within that namespace which belongs to the specified IBM StockTrader Application Helm release and terminate it:
 
 ```Shell
 while true; do
@@ -368,7 +365,7 @@ while true; do
 done
 ```
 
-this way we simulate failures on the IBM Cloud Private (ICP) platform that will allow us to study the IBM StockTrader application resiliency as the cloud native stateless microservices based reference application for the IBM Cloud Private (ICP) resiliency at the application level initial scenario.
+this way we simulate failures on the IBM Cloud Private (ICP) platform that will allow us to study the IBM StockTrader Application resiliency as the cloud native stateless microservices based reference application for the IBM Cloud Private (ICP) resiliency at the application level initial scenario.
 
 Example:
 
@@ -395,13 +392,13 @@ As you can see, the [chaos.sh](test/chaos.sh) script will run until a kill signa
 
 ### Test Execution
 
-As already said in this readme, in order to test what we consider the easiest and therefore first step on testing cloud native microservices based applications on the IBM Cloud Private (ICP) platform (that is stateless microservices based applications), we are going to test the IBM StockTrader application resiliency.
+As already said in this readme, in order to test what we consider the easiest and therefore first step on testing cloud native microservices based applications on the IBM Cloud Private (ICP) platform (that is stateless microservices based applications), we are going to test the IBM StockTrader Application resiliency.
 
-For doing so, we have [deployed the IBM StockTrader application](#installation) and developed [load test scripts](#load-test) for it and a [Kubernetes pod failure shell script](#monkey-chaos) for the IBM Cloud Private (ICP) platform.
+For doing so, we have [deployed the IBM StockTrader Application](#installation) and developed [load test scripts](#load-test) for it and a [Kubernetes pod failure shell script](#monkey-chaos) for the IBM Cloud Private (ICP) platform.
 
-Then, we have scaled our stateless microservices to 3 replicas (except from the backend for frontend **Trader** microservice(1)) so that we create high availability, increase our application resiliency and minimise Kubernetes pod failures to break our application. There is no point in testing with only one replica as any pod failure will bring our application down.
+Then, we have scaled our stateless microservices to 3 replicas (except from the backend for frontend **Trader** microservice(1)) so that we create high availability, increase our application resiliency and minimise the probability that Kubernetes pod failures break our application. There is no point in testing with only one replica as any pod failure will bring our application down.
 
-(1) The reason the backend for frontend (BFF) Trader microservice has not been scaled is due to a WebSphere Liberty SSO limitation which does not allow to share the SSO credentials/cookies amongst several WebSphere Liberty instances. Hence, requests will get redirected several times to the login mechanism. Since the Trader microservice `latest` version is not able to scale and therefore we are going to have only 1 replica of our backend for frontend (BFF), we have decided to run our tests with the `basicregistry` version instead as the load test scripts for such version automates the login into the IBM StockTrader application.
+(1) The reason the backend for frontend (BFF) Trader microservice has not been scaled is due to a WebSphere Liberty SSO limitation which does not allow to share the SSO credentials/cookies amongst several WebSphere Liberty instances. Hence, requests will get redirected several times to the login mechanism. Since the Trader microservice `latest` version is not able to scale and therefore we are going to have only 1 replica of our backend for frontend (BFF), we have decided to run our tests with the `basicregistry` version instead as the load test scripts for such version automates the login into the IBM StockTrader Application.
 
 This is how our testing environment looks like in terms of pods:
 
@@ -431,13 +428,15 @@ test-tradr-548b58bc55-kms2z                  1/1       Running   0          3h
 
 that is,
 
-- 1 replica of our middleware pieces: `IBM DB2`, `IBM MQ`, `IBM ODM` and `Redis`
-- 1 replica of our backend for frontend: `trader` (`tradr` is not used even though it gets installed with the IBM StockTrader application Helm chart)
-- 3 replicas of the core IBM StockTrader application microservices: `Portfolio`, `Stock-quote`, `Messaging` and `Notificatio-Twitter`
+- 1 replica of our middleware pieces: `IBM DB2`, `IBM MQ`, `IBM ODM` and `Redis`.
+- 1 replica of our backend for frontend: `trader` (`tradr` is not used in this case even though it gets installed with the IBM StockTrader Application Helm chart).
+- 3 replicas of the core IBM StockTrader Application microservices: `Portfolio`, `Stock-quote`, `Messaging` and `Notification-Twitter`.
 
-Now, the only thing that is left is to execute the load test scripts and the Kubernetes pod failure script at the same time over the IBM StockTrader application installation you can see above which we have on our IBM Cloud Private (ICP) instance hosted on our lab.
+Now, the only thing that remains is to execute the load test scripts and the Kubernetes pod failure script at the same time over the IBM StockTrader Application installation you can see above which we have on our IBM Cloud Private (ICP) instance hosted on our lab.
 
 The results of these executions can be found in the [test execution readme file](test_execution.md).
+
+**IMPORTANT:** Test execution results will contain test executions for both the Twitter and Slack notification route versions of the IBM StockTrader Application. It is important to note the [**Twitter API testing limitations**](https://help.twitter.com/en/rules-and-policies/twitter-limits) which does not let you make more than 50 rest calls per 30 minutes.
 
 ## Files
 
@@ -452,13 +451,13 @@ This folder contains the images used for this README file.
 - [execution](test/execution): This folder contains the test execution results.
 - [chaos.sh](test/chaos.sh): Shell script that simulates Kubernetes pod failures.
 - [delete_all_tweets.py](test/delete_all_tweets.py): Python script to delete all tweets from a given twitter account.
-- [export.sh](test/export.sh): Shell script to export the IBM StockTrader application database to a text file.
+- [export.sh](test/export.sh): Shell script to export the IBM StockTrader Application database to a text file.
 - [get_logs.sh](test/get_logs.sh): Shell script to get all the logs from a Helm release since a period of time (if specified).
-- [main_looper_basic_registry.sh](test/main_looper_basic_registry.sh): Single-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
-- [main_looper_oidc.sh](test/main_looper_oidc.sh): Single-threaded IBM StockTrader load test script to be used when `latest` Trader microservice version.
-- [threaded_main_looper_basic_registry.sh](test/threaded_main_looper_basic_registry.sh): Multi-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
-- [threaded_main_looper_oidc.sh](test/threaded_main_looper_oidc.sh): Multi-threaded IBM StockTrader test script to be used when `latest` Trader microservice version.
-- [user_loop.sh](test/user_loop.sh): Simulated user behavior load test script to be called by the multi-threaded IBM StockTrader test scripts to carry out the adding stock workflow piece.
+- [trader_main_looper_basic_registry.sh](test/trader_main_looper_basic_registry.sh): Single-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
+- [trader_main_looper_oidc.sh](test/trader_main_looper_oidc.sh): Single-threaded IBM StockTrader load test script to be used when `latest` Trader microservice version.
+- [trader_threaded_main_looper_basic_registry.sh](test/trader_threaded_main_looper_basic_registry.sh): Multi-threaded IBM StockTrader load test script to be used when `basicregistry` Trader microservice version.
+- [trader_threaded_main_looper_oidc.sh](test/trader_threaded_main_looper_oidc.sh): Multi-threaded IBM StockTrader test script to be used when `latest` Trader microservice version.
+- [trader_user_loop.sh](test/trader_user_loop.sh): Simulated user behavior load test script to be called by the multi-threaded IBM StockTrader test scripts to carry out the adding stock workflow piece.
 - [users.sh](test/users.sh): Shell script to export the IBM StockTrader portfolios to a text file.
 
 ## Links
