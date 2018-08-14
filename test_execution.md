@@ -113,6 +113,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_1/chaos.txt).
 
 Execution time: 307 seconds
+
 Total number of rest calls: 402
 
 ### Conclusion
@@ -230,6 +231,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_2/chaos.txt).
 
 Execution time: 340 seconds
+
 Total number of rest calls: 402
 
 ### Conclusion
@@ -351,6 +353,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_2/chaos.txt).
 
 Execution time: 280 seconds
+
 Total number of rest calls: 402
 
 ### Conclusion
@@ -473,6 +476,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_4/chaos.txt).
 
 Execution time: 328 seconds
+
 Total number of rest calls: 402
 
 ### Conclusion
@@ -508,10 +512,10 @@ IBM StockTrader application:
 <img alt="test_5_app" src="test/execution/test_5/test_5_app.png" width="600"/>
 </p>
 
-Twitter account:
+Slack channel account:
 
 <p align="center">
-<img alt="test_5_slack" src="test/execution/test_5/test_5_slack.png" width="600"/>
+<img alt="test_5_slack" src="test/execution/test_5/test_5_slack.png"/>
 </p>
 
 Portfolio table:
@@ -610,6 +614,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_5/chaos.txt).
 
 Execution time: 222 seconds
+
 Total number of rest calls: 536
 
 ### Conclusion
@@ -645,10 +650,10 @@ IBM StockTrader application:
 <img alt="test_6_app" src="test/execution/test_6/test_6_app.png" width="600"/>
 </p>
 
-Twitter account:
+Slack channel:
 
 <p align="center">
-<img alt="test_6_slack" src="test/execution/test_6/test_6_slack.png" width="600"/>
+<img alt="test_6_slack" src="test/execution/test_6/test_6_slack.png"/>
 </p>
 
 Portfolio table:
@@ -747,6 +752,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_6/chaos.txt).
 
 Execution time: 223 seconds
+
 Total number of rest calls: 536
 
 ### Conclusion
@@ -782,10 +788,10 @@ IBM StockTrader application:
 <img alt="test_7_app" src="test/execution/test_7/test_7_app.png" width="600"/>
 </p>
 
-Twitter account:
+Slack channel:
 
 <p align="center">
-<img alt="test_7_slack" src="test/execution/test_7/test_7_slack.png" width="600"/>
+<img alt="test_7_slack" src="test/execution/test_7/test_7_slack.png"/>
 </p>
 
 Portfolio table:
@@ -880,6 +886,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_7/chaos.txt).
 
 Execution time: 225 seconds
+
 Total number of rest calls: 536
 
 ### Conclusion
@@ -915,10 +922,10 @@ IBM StockTrader application:
 <img alt="test_8_app" src="test/execution/test_8/test_8_app.png" width="600"/>
 </p>
 
-Twitter account:
+Slack channel:
 
 <p align="center">
-<img alt="test_8_slack" src="test/execution/test_8/test_8_slack.png" width="600"/>
+<img alt="test_8_slack" src="test/execution/test_8/test_8_slack.png"/>
 </p>
 
 Portfolio table:
@@ -989,6 +996,7 @@ Deleted pods:
 More info on what pods [here](test/execution/test_8/chaos.txt).
 
 Execution time: 231 seconds
+
 Total number of rest calls: 536
 
 ### Conclusion
